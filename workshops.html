@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Workshops & tickets — GlisteningStudio</title>
-<meta name="description" content="Maak je eigen kristallen raamhanger tijdens een workshop van GlisteningStudio in Den Haag. Boek je tickets via Fienta.">
+<title>Workshops & tickets — Glistening Studio</title>
+<meta name="description" content="Maak je eigen kristallen suncatcher tijdens een workshop van Glistening Studio in Den Haag. Bekijk mijn eigen agenda voor de eerstvolgende data.">
 <link rel="canonical" href="https://www.glisteningstudio.nl/workshops.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Workshops & tickets — GlisteningStudio">
-<meta property="og:description" content="Maak je eigen kristallen raamhanger tijdens een workshop van GlisteningStudio in Den Haag. Boek je tickets via Fienta.">
+<meta property="og:title" content="Workshops & tickets — Glistening Studio">
+<meta property="og:description" content="Maak je eigen kristallen suncatcher tijdens een workshop van Glistening Studio in Den Haag. Bekijk mijn eigen agenda voor de eerstvolgende data.">
 <meta property="og:url" content="https://www.glisteningstudio.nl/workshops.html">
 <meta property="og:locale" content="nl_NL">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23c9862f%22/></svg>">
@@ -18,42 +18,88 @@
 <body>
 <a class="skip-link" href="#main">Ga naar inhoud</a>
 
-<header class="site">
-  <div class="wrap nav-row">
-    <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="GlisteningStudio"></a>
-    <button class="nav-toggle" aria-label="Menu openen" aria-expanded="false">☰</button>
-    <nav class="primary">
-      <a href="index.html">Home</a>
-      <a href="over-ons.html">Over ons</a>
-      <a href="workshops.html" aria-current="page">Workshops</a>
-      <a href="contact.html">Contact</a>
-      <a class="cta" href="workshops.html">Bekijk workshops</a>
-    </nav>
-  </div>
-</header>
+<nav class="site-nav">
+  <button class="menu-btn" id="menuToggle" aria-haspopup="true" aria-expanded="false" aria-controls="navOverlay">
+    <span class="bars"><span></span><span></span><span></span></span>
+    Menu
+  </button>
+</nav>
+
+<div class="nav-overlay" id="navOverlay">
+  <button class="close-btn" id="navClose" aria-label="Menu sluiten">&times;</button>
+  <a href="index.html">Home</a>
+  <a href="over-ons.html">Over mij</a>
+  <a href="workshops.html">Workshops</a>
+  <a href="contact.html">Contact</a>
+  <a class="cta" href="workshops.html">Bekijk workshops</a>
+</div>
 
 <main id="main">
-  <section class="hero" style="padding-bottom: 8px;">
+  <section class="hero hero-center" style="padding-bottom: 8px;">
     <div class="wrap">
       <span class="eyebrow">Workshops</span>
-      <h1 style="max-width: 22ch;">Boek je plek en maak je eigen raamhanger.</h1>
-      <p class="lede" style="max-width: 60ch;">Tickets, actuele data en prijzen beheren we via Fienta, zodat betalen en je plek reserveren altijd veilig en actueel is.</p>
+      <h1>Boek je plek en maak je eigen suncatcher.</h1>
+      <p class="lede">Hier vind je straks mijn eigen agenda: wanneer je kunt komen spelen met licht, kleur en kristal.</p>
     </div>
   </section>
 
-  <section class="block">
+  <section class="block" id="agenda">
     <div class="wrap">
-      <div class="workshop-card">
-        <div class="photo square"><img src="suncatchers-tuin.jpg" alt="Handgemaakte kristallen raamhangers van GlisteningStudio" loading="lazy"></div>
-        <div>
-          <h3>Maak je eigen raamhanger</h3>
-          <p class="meta">Actuele workshops, data, locatie en prijzen: zie onze ticketpagina op Fienta.</p>
-          <a class="btn btn-primary" href="https://fienta.com/nl/o/41982" target="_blank" rel="noopener">Bekijk & boek op Fienta</a>
+      <h2>Agenda</h2>
+      <p class="lede">Zo ziet mijn eigen agenda eruit. De echte data volgen nog — dit is een voorbeeld van hoe je straks een workshop vindt en je plek claimt.</p>
+
+      <div class="agenda-list">
+        <div class="agenda-item">
+          <div class="agenda-date">Datum<br>volgt</div>
+          <div class="agenda-info">
+            <h3><a href="evenement.html">Maak je eigen suncatcher</a></h3>
+            <p>Los boeken · Den Haag e.o.</p>
+          </div>
+          <a class="btn btn-ghost" href="evenement.html">Bekijk voorbeeld</a>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-date">Datum<br>volgt</div>
+          <div class="agenda-info">
+            <h3>Privégroep — jouw feestje, jouw workshop</h3>
+            <p>Privégroep · locatie in overleg</p>
+          </div>
+          <a class="btn btn-ghost" href="mailto:GlisteningStudio@yahoo.com?subject=Ik%20wil%20een%20priv%C3%A9groep%20boeken">Vraag een datum aan</a>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-date">Datum<br>volgt</div>
+          <div class="agenda-info">
+            <h3>Zakelijk &amp; professioneel</h3>
+            <p>Teamuitje of netwerkevenement · op maat</p>
+          </div>
+          <a class="btn btn-ghost" href="mailto:GlisteningStudio@yahoo.com?subject=Zakelijke%20workshop%20aanvragen">Vraag een datum aan</a>
         </div>
       </div>
 
       <div class="note-box">
-        <strong>Binnenkort meerdere workshops?</strong> Zodra je nieuwe workshops toevoegt op Fienta, voegen we hier per workshop een eigen kaart toe — of we zetten dit straks automatisch op met Cowork, zodat een nieuwe workshop op Fienta automatisch op deze pagina verschijnt.
+        <strong>Dit is een voorbeeld.</strong> Zodra de eerste echte datum vaststaat, verschijnt die hier automatisch bovenaan — met tijd, locatie en een eigen boekingsknop.
+      </div>
+    </div>
+  </section>
+  <section class="block alt">
+    <div class="wrap">
+      <h2>Op drie manieren te boeken</h2>
+      <p class="lede">Een workshop bij Glistening Studio past zich aan jouw gelegenheid aan.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Los boeken</h3>
+          <p>Boek in je eentje of met z'n tweeën en sluit aan bij een groep. Gezellig, laagdrempelig, en je hoeft niemand mee te nemen.</p>
+        </div>
+        <div class="card">
+          <h3>Privégroep</h3>
+          <p>Boek me voor een feest of andere gelegenheid — je doet de workshop met je eigen groep, in plaats van aan te sluiten bij onbekenden.</p>
+        </div>
+        <div class="card">
+          <h3>Zakelijk & professioneel</h3>
+          <p>Een bedrijfsuitje met teambuilding, of een verbindende activiteit voor een netwerkevenement — op maat voor jouw organisatie.</p>
+        </div>
+      </div>
+      <div class="note-box">
+        Dit staat allemaal op de planning. Neem gerust contact op om de mogelijkheden te bespreken.
       </div>
     </div>
   </section>
@@ -61,7 +107,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <span>© 2026 GlisteningStudio · Den Haag</span>
+    <span>© 2026 Glistening Studio · Den Haag</span>
     <span><a href="mailto:GlisteningStudio@yahoo.com">GlisteningStudio@yahoo.com</a></span>
   </div>
 </footer>
