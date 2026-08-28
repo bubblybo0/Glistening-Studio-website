@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GlisteningStudio — Workshops kristallen raamhangers met licht en kleur</title>
-<meta name="description" content="GlisteningStudio geeft workshops waarin je je eigen handgemaakte kristallen raamhanger maakt en leert spelen met licht en kleuren. Gevestigd in Den Haag.">
+<title>Glistening Studio — Workshops kristallen suncatchers met licht en kleur</title>
+<meta name="description" content="Glistening Studio geeft workshops waarin je je eigen handgemaakte kristallen suncatcher maakt en leert spelen met licht en kleuren. Gevestigd in Den Haag.">
 <link rel="canonical" href="https://www.glisteningstudio.nl/">
 <!-- TODO: vervang glisteningstudio.nl overal door het echte domein zodra dat gekozen is -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="GlisteningStudio — Speel met licht en kleuren">
-<meta property="og:description" content="Workshops handgemaakte kristallen raamhangers in Den Haag: maak van zonlicht een betoverend thuis.">
+<meta property="og:title" content="Glistening Studio — Speel met licht en kleuren">
+<meta property="og:description" content="Workshops handgemaakte kristallen suncatchers in Den Haag: maak van zonlicht een betoverend thuis.">
 <meta property="og:url" content="https://www.glisteningstudio.nl/">
 <meta property="og:image" content="https://www.glisteningstudio.nl/suncatchers-tuin.jpg">
 <meta property="og:locale" content="nl_NL">
@@ -20,17 +20,15 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "GlisteningStudio",
+  "name": "Glistening Studio",
   "email": "GlisteningStudio@yahoo.com",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "Hardenbroekstraat 49",
-    "postalCode": "2532 XR",
     "addressLocality": "Den Haag",
     "addressRegion": "Zuid-Holland",
     "addressCountry": "NL"
   },
-  "description": "Workshops waarin je je eigen handgemaakte kristallen raamhanger (suncatcher) maakt.",
+  "description": "Workshops waarin je je eigen handgemaakte kristallen suncatcher maakt.",
   "url": "https://www.glisteningstudio.nl/"
 }
 </script>
@@ -38,19 +36,21 @@
 <body>
 <a class="skip-link" href="#main">Ga naar inhoud</a>
 
-<header class="site">
-  <div class="wrap nav-row">
-    <a class="logo" href="index.html"><img class="logo-img" src="logo.png" alt="GlisteningStudio"></a>
-    <button class="nav-toggle" aria-label="Menu openen" aria-expanded="false">☰</button>
-    <nav class="primary">
-      <a href="index.html" aria-current="page">Home</a>
-      <a href="over-ons.html">Over ons</a>
-      <a href="workshops.html">Workshops</a>
-      <a href="contact.html">Contact</a>
-      <a class="cta" href="workshops.html">Bekijk workshops</a>
-    </nav>
-  </div>
-</header>
+<nav class="site-nav">
+  <button class="menu-btn" id="menuToggle" aria-haspopup="true" aria-expanded="false" aria-controls="navOverlay">
+    <span class="bars"><span></span><span></span><span></span></span>
+    Menu
+  </button>
+</nav>
+
+<div class="nav-overlay" id="navOverlay">
+  <button class="close-btn" id="navClose" aria-label="Menu sluiten">&times;</button>
+  <a href="index.html">Home</a>
+  <a href="over-ons.html">Over mij</a>
+  <a href="workshops.html">Workshops</a>
+  <a href="contact.html">Contact</a>
+  <a class="cta" href="workshops.html">Bekijk workshops</a>
+</div>
 
 <main id="main">
 
@@ -58,63 +58,107 @@
     <video autoplay muted loop playsinline poster="hero-poster.jpg" aria-hidden="true">
       <source src="hero.mp4" type="video/mp4">
     </video>
-    <div class="hero-video-content">
-      <div class="inner">
-        <span class="eyebrow">Workshops kristallen raamhangers · Den Haag</span>
-        <h1>Speel met licht en kleuren, laat een levendige ruimte ontstaan.</h1>
-        <p class="lede">Maak van zonlicht een betoverend thuis. Bij GlisteningStudio maak je in een kleine, praktische workshop je eigen handgemaakte kristallen raamhanger — en neem je die regenboogjes gewoon mee naar huis.</p>
-        <div class="actions">
-          <a class="btn btn-primary" href="workshops.html">Bekijk workshops &amp; tickets</a>
-          <a class="btn btn-ghost-light" href="over-ons.html">Lees meer over ons</a>
+    <img class="hero-mark" src="logo.png" alt="Glistening Studio">
+    <span class="hero-scroll-cue" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </span>
+  </section>
+
+  <section class="hero-intro">
+    <div class="wrap inner">
+      <span class="eyebrow">Creatieve workshops Den Haag</span>
+      <h1>Speel met licht en kleuren, laat een levendige ruimte ontstaan.</h1>
+      <p class="lede">Maak van zonlicht een betoverend thuis en geniet van de dansende regenboogjes voor een levendig huis.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="workshops.html">Bekijk workshops &amp; tickets</a>
+        <a class="btn btn-ghost" href="over-ons.html">Lees meer</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="story-section wash-2">
+    <div class="wrap">
+      <div class="story-row reveal">
+        <div class="story-photo"><img src="suncatchers-tuin.jpg" alt="Drie handgemaakte kristallen suncatchers met levensboom, vlinder en mandala, hangend tussen het groen" loading="lazy"></div>
+        <div class="story-text">
+          <span class="eyebrow">Wat ik maak</span>
+          <h2>Geen twee kristallen vangen het licht op dezelfde manier.</h2>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="block alt">
+  <section class="story-section wash-3 ambient-section">
+    <video class="ambient-bg ambient-bg-soft" autoplay muted loop playsinline poster="video-lichtvlekken-dans-poster.jpg" aria-hidden="true">
+      <source src="video-lichtvlekken-dans.mp4" type="video/mp4">
+    </video>
     <div class="wrap">
-      <h2>Waarom een workshop bij GlisteningStudio</h2>
-      <p class="lede">Elke raamhanger die je maakt, vangt het licht op zijn eigen manier. Wij laten je zien hoe je kristallen, kralen en bedeltjes combineert tot iets dat écht van jou is.</p>
+      <div class="photo-band">
+        <div class="story-photo reveal"><img src="plant-licht.jpg" alt="Regenboogjes op een plant en vensterbank" loading="lazy"></div>
+        <div class="story-photo reveal delay-1"><img src="lichtstralen-plafond.jpg" alt="Lichtstralen van een kristallen suncatcher op een plafondhoek" loading="lazy"></div>
+        <div class="story-photo reveal delay-2"><img src="regenboog-hoek.jpg" alt="Regenboog van een kristallen suncatcher over vloer en muur" loading="lazy"></div>
+        <div class="story-photo reveal"><img src="suncatcher-raam.jpg" alt="Kristallen suncatcher met mandala-bedeltje voor het raam, regenboogjes op de vensterbank" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="story-section wash-4">
+    <div class="wrap">
+      <div class="story-row reveal">
+        <div class="story-photo"><img src="regenboog-gordijn.jpg" alt="Regenboogreflecties van een kristallen suncatcher op een gordijn" loading="lazy"></div>
+        <div class="story-text">
+          <span class="eyebrow">De workshop</span>
+          <h2>Kom spelen met licht en kleur, en neem je eigen sprankeling mee naar huis.</h2>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="story-section wash-5 ambient-section">
+    <video class="ambient-bg" autoplay muted loop playsinline poster="video-gordijn-dans-poster.jpg" aria-hidden="true">
+      <source src="video-gordijn-dans.mp4" type="video/mp4">
+    </video>
+    <div class="wrap">
+      <div class="photo-band">
+        <div class="story-photo reveal"><img src="suncatcher-lucht.jpg" alt="Kristallen suncatcher met mandala-bedeltje tegen een blauwe lucht" loading="lazy"></div>
+        <div class="story-photo reveal delay-1"><img src="plant-vensterbank.jpg" alt="Regenboogvlekken van een kristallen suncatcher naast een plant op de vensterbank" loading="lazy"></div>
+        <div class="story-photo reveal delay-2"><img src="regenboog-vloer.jpg" alt="Regenboog van een kristallen suncatcher op de vloer" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block wash-6">
+    <div class="wrap">
+      <h2>Waarom een workshop bij Glistening Studio</h2>
+      <p class="lede">Elke suncatcher die je maakt, vangt het licht op een eigen manier. Ik laat je zien hoe je kristallen, kralen en bedeltjes combineert tot iets dat écht van jou is.</p>
       <div class="grid-3">
         <div class="card">
-          <h3>Praktisch, geen theorie</h3>
-          <p>Je werkt met echte kristallen, kralen en metalen bedeltjes — geen lange lezing, maar direct aan de slag.</p>
+          <h3>Handen in de kristallen</h3>
+          <p>Voel het gewicht van geslepen kristal, de kleur van kralen, het glinsteren van een bedeltje — en laat je handen de rest ontdekken, zonder lange uitleg vooraf.</p>
         </div>
         <div class="card">
-          <h3>Kleine groepen</h3>
-          <p>Persoonlijke begeleiding per deelnemer, zodat je ontwerp past bij jouw eigen smaak.</p>
+          <h3>Klein en dichtbij</h3>
+          <p>In een kleine groep is alle ruimte om te spelen, te twijfelen en te kiezen — helemaal op jouw tempo, helemaal jouw smaak.</p>
         </div>
         <div class="card">
-          <h3>Je gaat naar huis met je eigen werk</h3>
-          <p>Aan het eind van de workshop heb je een eigen, kant-en-klare raamhanger om meteen op te hangen.</p>
+          <h3>Een eigen sprankeling om mee te nemen</h3>
+          <p>Aan het eind van de middag hang je iets voor het raam dat alleen jij zo gemaakt hebt — klaar om meteen het licht te vangen.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="wrap">
-      <h2>Gemaakt bij GlisteningStudio</h2>
-      <p class="lede">Een indruk van de raamhangers die in de workshops ontstaan.</p>
-      <div class="grid-3" style="margin-top:28px;">
-        <div class="photo square"><img src="suncatchers-tuin.jpg" alt="Drie handgemaakte kristallen raamhangers met levensboom, vlinder en mandala, hangend tussen het groen" loading="lazy"></div>
-        <div class="photo square"><img src="suncatcher-raam.jpg" alt="Kristallen raamhanger met mandala-bedeltje voor het raam, regenboogjes op de vensterbank" loading="lazy"></div>
-        <div class="photo square"><img src="regenboog-gordijn.jpg" alt="Regenboogreflecties van een kristallen raamhanger op een gordijn" loading="lazy"></div>
       </div>
     </div>
   </section>
 
   <section class="block alt">
     <div class="wrap">
-      <h2>Doe mee aan een workshop</h2>
-      <p class="lede">Bekijk de actuele workshops, data, locatie en prijzen en boek je plek via onze ticketpagina.</p>
+      <h2>Kom spelen</h2>
+      <p class="lede">Bekijk mijn eigen agenda voor de eerstvolgende workshops — en laat je verrassen door wat er nog aan komt.</p>
       <div class="grid-3" style="margin-top:28px; grid-template-columns: 1fr;">
         <div class="workshop-card">
-          <div class="photo square"><img src="suncatchers-tuin.jpg" alt="Handgemaakte kristallen raamhangers van GlisteningStudio" loading="lazy"></div>
+          <div class="photo square"><img src="suncatchers-tuin.jpg" alt="Handgemaakte kristallen suncatchers van Glistening Studio" loading="lazy"></div>
           <div>
-            <h3>Maak je eigen raamhanger</h3>
-            <p class="meta">Actuele workshops, data en prijzen: zie onze ticketpagina op Fienta.</p>
-            <a class="btn btn-primary" href="https://fienta.com/nl/o/41982" target="_blank" rel="noopener">Bekijk & boek op Fienta</a>
+            <h3>Maak je eigen suncatcher</h3>
+            <p class="meta">Nieuwe data verschijnen binnenkort in mijn eigen agenda.</p>
+            <a class="btn btn-primary" href="workshops.html#agenda">Bekijk mijn agenda</a>
           </div>
         </div>
       </div>
@@ -125,7 +169,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <span>© 2026 GlisteningStudio · Den Haag</span>
+    <span>© 2026 Glistening Studio · Den Haag</span>
     <span><a href="mailto:GlisteningStudio@yahoo.com">GlisteningStudio@yahoo.com</a></span>
   </div>
 </footer>
