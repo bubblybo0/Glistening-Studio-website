@@ -405,13 +405,16 @@ body.nav-open { overflow: hidden; }
 }
 .hero-intro .inner { max-width: 62ch; margin: 0 auto; position: relative; z-index: 1; }
 .hero-intro h1 {
-  font-size: clamp(2.1rem, 4.6vw, 3.1rem);
+  font-size: clamp(0.9rem, 4vw, 3.1rem);
+  white-space: nowrap;
 }
 .hero-intro .lede {
   margin-top: 18px;
-  font-size: 1.15rem;
+  font-size: clamp(0.72rem, 2.6vw, 1.15rem);
+  white-space: nowrap;
   color: var(--text-muted);
 }
+
 .hero-intro .actions {
   margin-top: 30px;
   display: flex;
