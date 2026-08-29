@@ -57,6 +57,24 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
   }
 
+  // Make sure every ambient/story video actually starts looping, even if the
+  // browser's autoplay policy silently blocked the autoplay attribute (in which
+  // case it would otherwise just sit frozen on its poster image forever).
+  var allVideos = document.querySelectorAll("video[autoplay]");
+  function tryPlayAll() {
+    allVideos.forEach(function (v) {
+      if (v.paused) {
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+    });
+  }
+  tryPlayAll();
+  window.addEventListener("load", tryPlayAll);
+  ["click", "touchstart", "scroll"].forEach(function (evt) {
+    document.addEventListener(evt, tryPlayAll, { once: true, passive: true });
+  });
+
   // Fade + lift each .reveal element into place the first time it scrolls into view
   var revealEls = document.querySelectorAll(".reveal");
   if (revealEls.length) {
