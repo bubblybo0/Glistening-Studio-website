@@ -85,8 +85,9 @@ body::before {
 }
 :root[data-theme="dark"] body::before { mix-blend-mode: overlay; opacity: 0.05; }
 
-/* A soft, warm glow that drifts toward the cursor — light, following you
-   around the page, the way a suncatcher's reflections do. Desktop only. */
+/* A soft prism-rainbow glow that drifts toward the cursor — like the rainbow
+   light spots a suncatcher throws on a wall, following you around the page.
+   Desktop only. */
 #lightCursor {
   position: fixed;
   top: 0;
@@ -95,7 +96,19 @@ body::before {
   height: 480px;
   margin: -240px 0 0 -240px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(201, 134, 47, 0.16) 0%, rgba(201, 134, 47, 0.07) 35%, rgba(201, 134, 47, 0) 70%);
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 130, 120, 0.22),
+    rgba(255, 191, 120, 0.22),
+    rgba(255, 238, 140, 0.22),
+    rgba(160, 224, 150, 0.22),
+    rgba(130, 210, 220, 0.22),
+    rgba(140, 160, 240, 0.22),
+    rgba(210, 140, 235, 0.22),
+    rgba(255, 130, 120, 0.22)
+  );
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 40%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 40%, transparent 70%);
   pointer-events: none;
   z-index: 1;
   opacity: 0;
@@ -298,9 +311,9 @@ body.nav-open { overflow: hidden; }
 .photo.wide { aspect-ratio: 16 / 10; border-radius: 18px; }
 
 /* ---------- Wide-banner video hero ---------- */
-/* No dark scrim, ever — the video stays bright and untouched. Legibility for
-   the mark on top comes from a soft drop-shadow, not a gradient overlay.
-   Deliberately wide/cinematic rather than full-viewport-tall. */
+/* Deliberately wide/cinematic rather than full-viewport-tall. Lightened on
+   purpose (opacity + a gentle brightness/desaturate filter) so the wall
+   behind the light spots reads soft and white rather than grey. */
 .hero-video-section {
   position: relative;
   width: 100%;
@@ -320,6 +333,8 @@ body.nav-open { overflow: hidden; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.6;
+  filter: brightness(1.14) contrast(0.92) saturate(0.92);
 }
 .hero-mark {
   position: relative;
@@ -411,6 +426,15 @@ body.nav-open { overflow: hidden; }
   .story-row, .story-row.reverse { grid-template-columns: 1fr; }
   .story-row.reverse .story-text, .story-row.reverse .story-photo { order: initial; }
 }
+/* A photo-only row (no paired text) — single centred column instead of the
+   usual two-column split. */
+.story-row.solo {
+  grid-template-columns: 1fr;
+}
+.story-row.solo .story-photo {
+  max-width: 560px;
+  margin: 0 auto;
+}
 .story-photo {
   border-radius: 22px;
   overflow: hidden;
@@ -421,6 +445,8 @@ body.nav-open { overflow: hidden; }
 .story-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
 .story-photo:hover img { transform: scale(1.055); }
 .story-photo:hover { box-shadow: 0 24px 54px -18px rgba(40, 30, 15, 0.45); }
+/* A slightly more transparent treatment for a specific photo (e.g. the curtain shot) */
+.story-photo.soft img { opacity: 0.82; }
 @media (prefers-reduced-motion: reduce) {
   .photo img, .story-photo img, .photo:hover img, .story-photo:hover img { transition: none; transform: none; }
 }
