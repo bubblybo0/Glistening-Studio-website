@@ -333,7 +333,7 @@ body.nav-open { overflow: hidden; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.6;
+  opacity: 0.7;
   filter: brightness(1.14) contrast(0.92) saturate(0.92);
 }
 .hero-mark {
@@ -830,3 +830,20 @@ footer.site a { color: var(--text-muted); }
   z-index: 100;
 }
 .skip-link:focus { left: 16px; top: 16px; }
+
+
+/* ---------- Workshop info section (NL/EN detail block) ---------- */
+.workshop-info-text { max-width: 68ch; margin: 0 auto; }
+.workshop-info-text p { text-align: left; margin-top: 16px; }
+.workshop-info-text p:first-child { margin-top: 20px; }
+.workshop-details-box { max-width: 68ch; margin: 24px auto 0; }
+.workshop-details-box ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.workshop-details-box li { font-size: 0.96rem; text-align: left; }
+.lang-toggle { margin: 28px auto 0; max-width: 68ch; }
+.lang-toggle summary { cursor: pointer; font-weight: 600; color: var(--accent-2); }
+.lang-toggle summary::marker { color: var(--accent-2); }
+.lang-toggle-content { margin-top: 16px; }
+.lang-toggle-content p { text-align: left; margin-top: 14px; }
+.lang-toggle-content ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.lang-toggle-content li { font-size: 0.96rem; text-align: left; }
+.lang-toggle-content h3 { margin-top: 4px; font-size: clamp(1.2rem, 2.2vw, 1.5rem); }
