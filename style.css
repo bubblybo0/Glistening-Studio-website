@@ -398,12 +398,14 @@ body.nav-open { overflow: hidden; }
 .hero-intro h1 {
   font-size: min(4vw, 3.1rem);
   text-align: center;
+  white-space: nowrap;
 }
 .hero-intro .lede {
   margin-top: 18px;
   font-size: min(2.6vw, 1.15rem);
   color: var(--text-muted);
   text-align: center;
+  white-space: nowrap;
 }
 
 .hero-intro .actions {
