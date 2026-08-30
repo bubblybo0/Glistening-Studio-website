@@ -400,7 +400,7 @@ body.nav-open { overflow: hidden; }
   text-align: center;
   white-space: nowrap;
   text-wrap: nowrap;
-  text-wrap-style: normal;
+  text-wrap-style: auto;
 }
 .hero-intro .lede {
   margin-top: 18px;
