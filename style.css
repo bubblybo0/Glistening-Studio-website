@@ -847,3 +847,10 @@ footer.site a { color: var(--text-muted); }
 .lang-toggle-content ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
 .lang-toggle-content li { font-size: 0.96rem; text-align: left; }
 .lang-toggle-content h3 { margin-top: 4px; font-size: clamp(1.2rem, 2.2vw, 1.5rem); }
+
+.story-row-even .story-photo { max-width: 85%; }
+.story-row-even .story-photo:first-child { margin-right: auto; }
+.story-row-even .story-photo:last-child { margin-left: auto; }
+@media (max-width: 820px) {
+  .story-row-even .story-photo { max-width: 100%; margin-left: 0; margin-right: 0; }
+}
