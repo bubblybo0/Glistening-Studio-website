@@ -399,6 +399,7 @@ body.nav-open { overflow: hidden; }
   font-size: min(4vw, 3.1rem);
   text-align: center;
   white-space: nowrap;
+  text-wrap: wrap;
 }
 .hero-intro .lede {
   margin-top: 18px;
