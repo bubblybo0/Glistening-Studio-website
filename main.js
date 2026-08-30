@@ -95,4 +95,15 @@ document.addEventListener("DOMContentLoaded", function () {
       revealEls.forEach(function (el) { observer.observe(el); });
     }
   }
+
+  // "Vertaal naar Engels" link in the nav — opens a Google Translate view of
+  // the current page in a new tab. Plain text link, no flag icons.
+  var translateLink = document.getElementById("translateLink");
+  if (translateLink) {
+    translateLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      var target = "https://translate.google.com/translate?sl=nl&tl=en&u=" + encodeURIComponent(window.location.href);
+      window.open(target, "_blank", "noopener");
+    });
+  }
 });
