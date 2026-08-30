@@ -12,7 +12,7 @@
   --text: #241f1a;
   --text-muted: #6c6459;
   --accent: #c9862f;       /* warm amber — "licht" */
-  --accent-2: #5f7a4a;     /* sage green — "natuur" */
+  --accent-2: #8bc34a;     /* apple green — "natuur" */
   --accent-soft: #f6e9d8;
   --border: #e6ddcd;
   --radius: 14px;
@@ -35,7 +35,7 @@
     --text: #f3ede2;
     --text-muted: #b3a897;
     --accent: #e0a34f;
-    --accent-2: #8fae76;
+    --accent-2: #9ccc65;
     --accent-soft: #3a2c22;
     --border: #40362b;
     --wash-1: #1c1815; --wash-2: #201b16; --wash-3: #1f1c15; --wash-4: #1a1e16; --wash-5: #191d1c; --wash-6: #191b1e;
@@ -48,7 +48,7 @@
   --text: #f3ede2;
   --text-muted: #b3a897;
   --accent: #e0a34f;
-  --accent-2: #8fae76;
+  --accent-2: #9ccc65;
   --accent-soft: #3a2c22;
   --border: #40362b;
   --wash-1: #1c1815; --wash-2: #201b16; --wash-3: #1f1c15; --wash-4: #1a1e16; --wash-5: #191d1c; --wash-6: #191b1e;
@@ -317,9 +317,9 @@ body.nav-open { overflow: hidden; }
 .hero-video-section {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 8;
-  max-height: 78vh;
-  min-height: 320px;
+  aspect-ratio: 16 / 6.8;
+  max-height: 66.3vh;
+  min-height: 272px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,20 +397,20 @@ body.nav-open { overflow: hidden; }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("lichtvlekken-muur.jpg");
+  background-image: url("lichtvlekken-deur.jpg");
   background-size: cover;
   background-position: center;
-  opacity: 0.4;
+  opacity: 0.5;
   z-index: 0;
 }
 .hero-intro .inner { max-width: 62ch; margin: 0 auto; position: relative; z-index: 1; }
 .hero-intro h1 {
-  font-size: clamp(0.9rem, 4vw, 3.1rem);
+  font-size: min(4vw, 3.1rem);
   white-space: nowrap;
 }
 .hero-intro .lede {
   margin-top: 18px;
-  font-size: clamp(0.72rem, 2.6vw, 1.15rem);
+  font-size: min(2.6vw, 1.15rem);
   white-space: nowrap;
   color: var(--text-muted);
 }
@@ -659,16 +659,6 @@ body.has-ambient-bg { background: transparent; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
-  animation: agenda-photo-cycle 9s infinite;
-}
-.agenda-date .agenda-photo:nth-child(1) { animation-delay: 0s; }
-.agenda-date .agenda-photo:nth-child(2) { animation-delay: 3s; }
-.agenda-date .agenda-photo:nth-child(3) { animation-delay: 6s; }
-@keyframes agenda-photo-cycle {
-  0%, 3% { opacity: 0; }
-  8%, 27% { opacity: 1; }
-  32%, 100% { opacity: 0; }
 }
 .agenda-date .agenda-date-label {
   position: absolute;
@@ -686,10 +676,6 @@ body.has-ambient-bg { background: transparent; }
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-@media (prefers-reduced-motion: reduce) {
-  .agenda-date .agenda-photo { animation: none; opacity: 0; }
-  .agenda-date .agenda-photo:first-child { opacity: 1; }
 }
 
 .note-box {
