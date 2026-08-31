@@ -579,10 +579,6 @@ section.block > .wrap > .lede {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 26px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
   align-items: center;
 }
 @media (max-width: 640px) { .workshop-card { grid-template-columns: 1fr; } }
