@@ -876,3 +876,50 @@ footer.site a { color: var(--text-muted); }
   text-decoration: underline;
 }
 .nav-overlay a.lang-link:hover { color: var(--accent-2); }
+
+/* ---------- Ticket quantity stepper (workshop detail pages) ---------- */
+.ticket-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+}
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px;
+}
+.qty-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.qty-btn:hover:not(:disabled) { background: var(--accent-soft); }
+.qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.qty-value {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.05rem;
+  font-family: "Work Sans", sans-serif;
+}
+.qty-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
