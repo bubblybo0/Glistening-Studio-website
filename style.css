@@ -162,6 +162,7 @@ img { max-width: 100%; display: block; }
 :root[data-theme="dark"] .site-nav { background: rgba(28, 24, 21, 0.88); }
 
 .site-nav-links {
+  grid-column: 2;
   justify-self: center;
   display: none;
   align-items: center;
@@ -186,6 +187,7 @@ img { max-width: 100%; display: block; }
 :root[data-theme="dark"] .site-nav-links a.cta { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
 
 .site-nav .menu-btn {
+  grid-column: 3;
   justify-self: end;
   display: inline-flex;
   align-items: center;
