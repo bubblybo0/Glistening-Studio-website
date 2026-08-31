@@ -61,95 +61,7 @@
   <section class="block" id="agenda">
     <div class="wrap">
       <div class="agenda-list">
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">9 sep</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Den Haag · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-9-sep.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">11 sep</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Gouda · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-11-sep.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">29 sep</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Vlaardingen · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-29-sep.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">8 okt</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Dordrecht · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-8-okt.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">10 okt</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Den Haag · 13:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-10-okt.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">17 okt</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Vlaardingen · 13:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-17-okt.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">27 okt</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Den Haag · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-27-okt.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
-          <div class="agenda-date">
-            <img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">
-            <span class="agenda-date-label">30 okt</span>
-          </div>
-          <div class="agenda-info">
-            <h3>Maak je eigen suncatcher</h3>
-            <p>Los boeken · Alphen · 19:00 · €45 p.p.</p>
-          </div>
-          <a class="btn btn-primary" href="workshop-30-okt.html">Meer info</a>
-        </div>
-        <div class="agenda-item">
+        <div id="dynamicAgendaItems"></div><div class="agenda-item">
           <div class="agenda-date">
             <img class="agenda-photo" src="suncatcher-raam.jpg" alt="" loading="lazy">
             <span class="agenda-date-label">Datum volgt</span>
@@ -210,5 +122,29 @@
 </footer>
 
 <script src="main.js"></script>
+<script>
+  (function () {
+    var container = document.getElementById("dynamicAgendaItems");
+    if (!container) return;
+    fetch("events.json")
+      .then(function (r) { return r.json(); })
+      .then(function (events) {
+        container.innerHTML = events.map(function (ev) {
+          return '<div class="agenda-item">' +
+            '<div class="agenda-date">' +
+              '<img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">' +
+              '<span class="agenda-date-label">' + ev.dateLabel + '</span>' +
+            '</div>' +
+            '<div class="agenda-info">' +
+              '<h3>Maak je eigen suncatcher</h3>' +
+              '<p>Los boeken · ' + ev.city + ' · ' + ev.time + ' · €45 p.p.</p>' +
+            '</div>' +
+            '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Meer info</a>' +
+          '</div>';
+        }).join("");
+      })
+      .catch(function (err) { console.error("Could not load events.json", err); });
+  })();
+</script>
 </body>
 </html>
