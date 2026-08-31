@@ -96,6 +96,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Slow-motion playback for specific ambient background videos
+  var slowMotionIds = ["workshopSectionVideo"];
+  slowMotionIds.forEach(function (id) {
+    var v = document.getElementById(id);
+    if (v) v.playbackRate = 0.5;
+  });
+
   // "Vertaal naar Engels" link in the nav — opens a Google Translate view of
   // the current page in a new tab. Plain text link, no flag icons.
   var translateLink = document.getElementById("translateLink");
