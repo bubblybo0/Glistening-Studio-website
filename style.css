@@ -577,9 +577,11 @@ section.block > .wrap > .lede {
 /* ---------- Workshop card ---------- */
 .workshop-card {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 26px;
+  grid-template-columns: 240px 1fr;
+  gap: 32px;
   align-items: center;
+  max-width: 640px;
+  margin: 0 auto;
 }
 @media (max-width: 640px) { .workshop-card { grid-template-columns: 1fr; } }
 .workshop-card h3 { font-size: 1.3rem; }
