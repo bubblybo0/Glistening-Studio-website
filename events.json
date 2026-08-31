@@ -1,0 +1,106 @@
+[
+  {
+    "id": "9-sep",
+    "dateLabel": "9 sep",
+    "dutchDate": "9 september",
+    "englishDate": "September 9",
+    "city": "Den Haag",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/VohtjNr3excZgKVBzXsDK"
+    }
+  },
+  {
+    "id": "11-sep",
+    "dateLabel": "11 sep",
+    "dutchDate": "11 september",
+    "englishDate": "September 11",
+    "city": "Gouda",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/GAPi6dihdRA7yWsMc2Vs7"
+    }
+  },
+  {
+    "id": "29-sep",
+    "dateLabel": "29 sep",
+    "dutchDate": "29 september",
+    "englishDate": "September 29",
+    "city": "Vlaardingen",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/k5xduC8X5BQxXXxbEqiv8"
+    }
+  },
+  {
+    "id": "8-okt",
+    "dateLabel": "8 okt",
+    "dutchDate": "8 oktober",
+    "englishDate": "October 8",
+    "city": "Dordrecht",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/prYoJCUo5JzmfnHDtPjAG"
+    }
+  },
+  {
+    "id": "10-okt",
+    "dateLabel": "10 okt",
+    "dutchDate": "10 oktober",
+    "englishDate": "October 10",
+    "city": "Den Haag",
+    "time": "13:00",
+    "timeOfDay": "middag",
+    "timeOfDayEn": "afternoon",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/KyCbCQyKK4hGoByNFPDAM"
+    }
+  },
+  {
+    "id": "17-okt",
+    "dateLabel": "17 okt",
+    "dutchDate": "17 oktober",
+    "englishDate": "October 17",
+    "city": "Vlaardingen",
+    "time": "13:00",
+    "timeOfDay": "middag",
+    "timeOfDayEn": "afternoon",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/YD4uVJQqoXN2q5wYcL6vx"
+    }
+  },
+  {
+    "id": "27-okt",
+    "dateLabel": "27 okt",
+    "dutchDate": "27 oktober",
+    "englishDate": "October 27",
+    "city": "Den Haag",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/sZFdGxc2idT2ApUMbmd5z"
+    }
+  },
+  {
+    "id": "30-okt",
+    "dateLabel": "30 okt",
+    "dutchDate": "30 oktober",
+    "englishDate": "October 30",
+    "city": "Alphen",
+    "time": "19:00",
+    "timeOfDay": "avond",
+    "timeOfDayEn": "evening",
+    "mollie": {
+      "1": "https://payment-links.mollie.com/payment/Xug9fYVabTdcmCK7WHEfn"
+    }
+  }
+]
