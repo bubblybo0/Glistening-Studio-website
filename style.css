@@ -150,7 +150,7 @@ img { max-width: 100%; display: block; }
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: clamp(12px, 3vw, 32px);
-  padding: 12px clamp(20px, 4vw, 48px);
+  padding: 10px clamp(20px, 4vw, 48px);
   background: rgba(250, 247, 242, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
