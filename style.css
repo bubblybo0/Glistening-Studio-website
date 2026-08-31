@@ -577,18 +577,20 @@ section.block > .wrap > .lede {
 /* ---------- Workshop card ---------- */
 .workshop-card {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 26px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  gap: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   align-items: center;
 }
-@media (max-width: 640px) { .workshop-card { grid-template-columns: 1fr; } }
 .workshop-card h3 { font-size: 1.3rem; }
 .workshop-card .meta { margin-top: 8px; color: var(--text-muted); font-size: 0.92rem; }
 .workshop-card .btn { margin-top: 16px; }
+.workshop-card .photo.portrait { aspect-ratio: 9 / 16; border-radius: 16px; max-width: 280px; margin: 0 auto; }
 
 /* ---------- Agenda (eigen agenda, geen externe ticketdienst) ---------- */
 .agenda-list {
