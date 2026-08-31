@@ -503,7 +503,7 @@ body.nav-open { overflow: hidden; }
 }
 .ambient-section .wrap { position: relative; z-index: 1; }
 .wrap > .photo-band:first-child { margin-top: 0; }
-.ambient-bg.ambient-bg-soft { opacity: 0.5; }
+.ambient-bg.ambient-bg-soft { opacity: 0.4; }
 
 /* Full-bleed photo band between story rows */
 .photo-band {
@@ -650,6 +650,7 @@ body.has-ambient-bg { background: transparent; }
   filter: brightness(1.15) saturate(0.85);
   pointer-events: none;
 }
+body.page-workshops .page-ambient-bg { opacity: 0.35; }
 @media (prefers-reduced-motion: reduce) {
   .page-ambient-bg { display: none; }
   body.has-ambient-bg { background: var(--bg); }
