@@ -93,6 +93,28 @@ document.addEventListener("DOMContentLoaded", function () {
         { threshold: 0.18, rootMargin: "0px 0px -60px 0px" }
       );
       revealEls.forEach(function (el) { observer.observe(el); });
+
+      // Safety net: IntersectionObserver can miss an element in rare cases
+      // (e.g. a video changing the row's height right as it scrolls into
+      // view). Without this, a missed element would stay invisible forever.
+      var revealFallback = function () {
+        revealEls.forEach(function (el) {
+          if (el.classList.contains("is-visible")) return;
+          var r = el.getBoundingClientRect();
+          if (r.top < window.innerHeight && r.bottom > 0) {
+            el.classList.add("is-visible");
+            observer.unobserve(el);
+          }
+        });
+      };
+      window.addEventListener("scroll", revealFallback, { passive: true });
+      window.addEventListener("resize", revealFallback);
+      window.addEventListener("load", revealFallback);
+      setTimeout(revealFallback, 1500);
+      // Last resort: never leave content permanently invisible.
+      setTimeout(function () {
+        revealEls.forEach(function (el) { el.classList.add("is-visible"); });
+      }, 6000);
     }
   }
 
