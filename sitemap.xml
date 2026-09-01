@@ -36,12 +36,22 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://glisteningstudio.com/workshop.html?event=2-okt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://glisteningstudio.com/workshop.html?event=8-okt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://glisteningstudio.com/workshop.html?event=10-okt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://glisteningstudio.com/workshop.html?event=14-okt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
