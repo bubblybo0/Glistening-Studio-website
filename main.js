@@ -118,31 +118,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Ticket quantity stepper: +/- buttons swap the "Boek workshop" link
-  // between pre-made fixed-amount Mollie links (1 ticket, 2 tickets, ...),
-  // so the customer never has to type in their own amount. initTicketPickers
-  // is re-run whenever event data finishes loading async (see workshop.html),
-  // since data-links may start empty on pages that fetch events.json.
+  // Ticket quantity stepper: +/- buttons build a "Boek workshop" link that goes
+  // straight to the Cloudflare Worker, which creates a Mollie payment on the fly
+  // for whatever quantity is chosen (no more pre-made per-quantity Mollie links).
+  // initTicketPickers is re-run whenever event data finishes loading async (see
+  // workshop.html), since the description may start empty on pages that fetch
+  // events.json.
+  var WORKER_BOOK_URL = "https://glistening-studio-tickets.noisy-surf-d8b5.workers.dev/book";
+  var MAX_TICKET_QTY = 8;
   function initTicketPickers() {
     document.querySelectorAll(".ticket-picker").forEach(function (picker) {
       var minus = picker.querySelector(".qty-minus");
       var plus = picker.querySelector(".qty-plus");
       var valueEl = picker.querySelector(".qty-value");
       var bookBtn = picker.querySelector(".book-btn");
-      var stepper = picker.querySelector(".qty-stepper");
       if (!minus || !plus || !valueEl || !bookBtn) return;
-      var links = {};
-      try { links = JSON.parse(bookBtn.getAttribute("data-links") || "{}"); } catch (e) {}
-      var maxQty = Object.keys(links).length || 1;
-      if (stepper) stepper.style.display = maxQty > 1 ? "" : "none";
+      var desc = bookBtn.getAttribute("data-worker-desc") || "Glistening Studio workshop";
+      var maxQty = MAX_TICKET_QTY;
       var qty = picker._qty && picker._qty <= maxQty ? picker._qty : 1;
       function update() {
         picker._qty = qty;
         valueEl.textContent = qty;
         minus.disabled = qty <= 1;
         plus.disabled = qty >= maxQty;
-        var url = links[String(qty)];
-        if (url) bookBtn.setAttribute("href", url);
+        var ticketDesc = desc + " - " + qty + " ticket" + (qty > 1 ? "s" : "");
+        bookBtn.setAttribute("href", WORKER_BOOK_URL + "?qty=" + qty + "&desc=" + encodeURIComponent(ticketDesc));
         bookBtn.textContent = qty === 1 ? "Boek workshop" : "Boek " + qty + " tickets";
       }
       minus.onclick = function () { if (qty > 1) { qty--; update(); } };
