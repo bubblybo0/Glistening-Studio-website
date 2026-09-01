@@ -56,7 +56,7 @@
           <span class="qty-value" aria-live="polite">1</span>
           <button type="button" class="qty-btn qty-plus" aria-label="Meer tickets">+</button>
         </div>
-        <a class="btn btn-primary book-btn" id="bookBtnTop" href="#" data-links="{}">Boek workshop</a>
+        <a class="btn btn-primary book-btn" id="bookBtnTop" href="#">Boek workshop</a>
       </div>
     </div>
   </section>
@@ -96,7 +96,6 @@
             <li>🕐 Duration: 2 to 2.5 hours</li>
             <li>📅 Date: <span id="evEnglishDate">—</span>, <span id="evTime3">—</span></li>
             <li>📍 Location: <span id="evCity4">—</span> (exact address to follow)</li>
-            <li>👥 Group size: 6 to 12 people</li>
             <li>💶 €45 per person — includes all materials and snacks</li>
             <li>🥗 Vegetarian and vegan snacks and drinks — anything to keep in mind? Just let me know, and it'll be taken into account</li>
             <li>🎨 All skill levels welcome, no experience needed</li>
@@ -111,7 +110,7 @@
           <span class="qty-value" aria-live="polite">1</span>
           <button type="button" class="qty-btn qty-plus" aria-label="Meer tickets">+</button>
         </div>
-        <a class="btn btn-primary book-btn" id="bookBtnBottom" href="#" data-links="{}">Boek workshop</a>
+        <a class="btn btn-primary book-btn" id="bookBtnBottom" href="#">Boek workshop</a>
       </div>
     </div>
   </section>
@@ -147,13 +146,11 @@
         document.getElementById("evEnglishDate").textContent = ev.englishDate;
         ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = ev.timeOfDay; });
         ["tod1en","tod2en","tod3en"].forEach(function (id) { document.getElementById(id).textContent = ev.timeOfDayEn; });
-        var linksJson = JSON.stringify(ev.mollie || {});
+        var eventDesc = ev.dutchDate + " - " + ev.city;
         var topBtn = document.getElementById("bookBtnTop");
         var bottomBtn = document.getElementById("bookBtnBottom");
         [topBtn, bottomBtn].forEach(function (btn) {
-          btn.setAttribute("data-links", linksJson);
-          var firstLink = ev.mollie && ev.mollie["1"];
-          if (firstLink) btn.setAttribute("href", firstLink);
+          btn.setAttribute("data-worker-desc", eventDesc);
         });
         document.dispatchEvent(new CustomEvent("eventDataReady"));
       })
