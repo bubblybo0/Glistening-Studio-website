@@ -51,17 +51,17 @@
   {
     "@context": "https://schema.org",
     "@type": "Event",
-    "name": "Suncatcher workshop Den Haag — 11 september",
+    "name": "Suncatcher workshop Gouda — 11 september",
     "startDate": "2026-09-11T19:00:00+02:00",
     "endDate": "2026-09-11T21:30:00+02:00",
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
     "eventStatus": "https://schema.org/EventScheduled",
     "location": {
       "@type": "Place",
-      "name": "Sfeervol atelier in Den Haag",
+      "name": "Sfeervol atelier in Gouda",
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": "Den Haag",
+        "addressLocality": "Gouda",
         "addressCountry": "NL"
       }
     },
@@ -450,9 +450,13 @@
   (function () {
     var container = document.getElementById("dynamicAgendaItems");
     if (!container) return;
-    fetch("events.json")
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (events) {
+    Promise.all([
+      fetch("events.json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }),
+      window.glsFetchAvailability()
+    ])
+      .then(function (results) {
+        var events = results[0];
+        var avail = results[1];
         var upcoming = events
           .filter(function (ev) { return window.glsIsUpcoming(ev.start); })
           .sort(function (a, b) { return new Date(a.start) - new Date(b.start); });
@@ -466,7 +470,8 @@
         container.innerHTML = upcoming.map(function (ev) {
           var L = window.glsEventLabels(ev.start);
           var price = ev.price != null ? ev.price : 45;
-          var soldOut = ev.status && ev.status !== "available";
+          var sold = (avail.sold && avail.sold[ev.id]) || 0;
+          var soldOut = (ev.status && ev.status !== "available") || sold >= (avail.capacity || 15);
           var cta = soldOut
             ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Uitverkocht</span>'
             : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Meer info</a>';

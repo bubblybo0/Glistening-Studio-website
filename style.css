@@ -972,3 +972,74 @@ footer.site a { color: var(--text-muted); }
   font-size: 0.85rem;
   color: var(--text-muted);
 }
+
+/* Boek-venster: kleine pop-up waarin de klant naam + e-mail invult
+   voordat we doorsturen naar de Mollie-betaling. */
+.book-dialog {
+  border: none;
+  border-radius: var(--radius);
+  padding: 0;
+  width: min(440px, calc(100vw - 32px));
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+.book-dialog::backdrop { background: rgba(30, 22, 14, 0.45); backdrop-filter: blur(2px); }
+.book-form { padding: 28px 26px 24px; position: relative; }
+.book-form h2 { margin: 0 0 6px; font-size: 1.3rem; }
+.book-summary {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.book-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.book-dialog-close:hover { color: var(--text); }
+.book-field {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.book-field input,
+.book-field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+.book-field input:focus,
+.book-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.book-field textarea { resize: vertical; }
+.book-opt { font-weight: 400; color: var(--text-muted); }
+.book-privacy { font-size: 0.82rem; color: var(--text-muted); margin: 4px 0 18px; }
+.book-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.book-actions .btn { cursor: pointer; }
+@media (max-width: 480px) {
+  .book-actions { flex-direction: column-reverse; }
+  .book-actions .btn { width: 100%; }
+}

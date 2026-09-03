@@ -26,6 +26,22 @@
     var start = new Date(startISO).getTime();
     return start + 12 * 60 * 60 * 1000 > Date.now();
   };
+
+  // Adres van de Cloudflare ticket-Worker. Ook beschikbaar voor de losse
+  // pagina-scripts (workshops.html / workshop.html) om beschikbaarheid op te halen.
+  window.GLS_WORKER_BASE = "https://glistening-studio-tickets.noisy-surf-d8b5.workers.dev";
+
+  // Haalt op hoeveel plekken per workshop al bezet zijn. Faalt de Worker, dan
+  // geven we een leeg resultaat terug zodat de agenda gewoon blijft werken.
+  window.glsFetchAvailability = function () {
+    return fetch(window.GLS_WORKER_BASE + "/availability")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.sold) return { capacity: 15, sold: {} };
+        return { capacity: data.capacity || 15, sold: data.sold };
+      })
+      .catch(function () { return { capacity: 15, sold: {} }; });
+  };
 })();
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -176,10 +192,80 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Ticket-stepper: +/- bouwen een "Boek workshop"-link die naar de Cloudflare
-  // Worker gaat, die op dat moment een Mollie-betaling maakt voor het gekozen aantal.
-  var WORKER_BOOK_URL = "https://glistening-studio-tickets.noisy-surf-d8b5.workers.dev/book";
+  // Ticket-stepper + boeken. De +/- kiezen het aantal; "Boek" opent een klein
+  // venster waarin de klant naam + e-mail (+ evt. dieetwensen) invult. Dat
+  // formulier POST't naar de Cloudflare Worker, die de Mollie-betaling start.
+  var WORKER_BOOK_URL = window.GLS_WORKER_BASE + "/book";
   var MAX_TICKET_QTY = 15;
+
+  // Bouwt (eenmalig) het boek-venster en geeft de invelden terug.
+  var bookDialog = null;
+  function ensureBookDialog() {
+    if (bookDialog) return bookDialog;
+    var d = document.createElement("dialog");
+    d.className = "book-dialog";
+    d.innerHTML =
+      '<form class="book-form" method="post" action="' + WORKER_BOOK_URL + '" novalidate>' +
+        '<button type="button" class="book-dialog-close" aria-label="Sluiten">&times;</button>' +
+        '<h2>Je plek reserveren</h2>' +
+        '<p class="book-summary" data-summary></p>' +
+        '<input type="hidden" name="eventId" data-eventid>' +
+        '<input type="hidden" name="qty" data-qty>' +
+        '<input type="hidden" name="desc" data-desc>' +
+        '<input type="hidden" name="when" data-when>' +
+        '<label class="book-field">Je naam' +
+          '<input type="text" name="name" autocomplete="name" required>' +
+        '</label>' +
+        '<label class="book-field">Je e-mailadres' +
+          '<input type="email" name="email" autocomplete="email" required>' +
+        '</label>' +
+        '<label class="book-field">Dieetwensen of allergie&euml;n? <span class="book-opt">(optioneel)</span>' +
+          '<textarea name="diet" rows="2"></textarea>' +
+        '</label>' +
+        '<p class="book-privacy">We gebruiken je gegevens alleen voor deze boeking.</p>' +
+        '<div class="book-actions">' +
+          '<button type="button" class="btn btn-ghost" data-cancel>Annuleren</button>' +
+          '<button type="submit" class="btn btn-primary" data-submit>Naar betaling &rarr;</button>' +
+        '</div>' +
+      '</form>';
+    document.body.appendChild(d);
+    var form = d.querySelector("form");
+    function close() { if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
+    d.querySelector(".book-dialog-close").addEventListener("click", close);
+    d.querySelector("[data-cancel]").addEventListener("click", close);
+    // Klik op de donkere achtergrond (buiten de kaart) sluit ook.
+    d.addEventListener("click", function (e) { if (e.target === d) close(); });
+    // Bij verzenden: knop uitschakelen zodat er niet dubbel geboekt wordt.
+    form.addEventListener("submit", function () {
+      var btn = d.querySelector("[data-submit]");
+      btn.disabled = true;
+      btn.textContent = "Bezig…";
+    });
+    bookDialog = d;
+    return d;
+  }
+
+  function openBookDialog(opts) {
+    var d = ensureBookDialog();
+    d.querySelector("[data-eventid]").value = opts.eventId || "";
+    d.querySelector("[data-qty]").value = opts.qty;
+    d.querySelector("[data-desc]").value = opts.desc;
+    d.querySelector("[data-when]").value = opts.when || "";
+    var total = (45 * opts.qty).toFixed(2).replace(".", ",");
+    d.querySelector("[data-summary]").innerHTML =
+      "<strong>" + opts.qty + " plek" + (opts.qty === 1 ? "" : "ken") + "</strong>" +
+      (opts.when ? " &middot; " + opts.when : "") +
+      " &middot; &euro;" + total;
+    // Verzendknop weer activeren (voor het geval een vorige poging afbrak).
+    var btn = d.querySelector("[data-submit]");
+    btn.disabled = false;
+    btn.innerHTML = "Naar betaling &rarr;";
+    if (typeof d.showModal === "function") d.showModal();
+    else d.setAttribute("open", "");
+    var nameInput = d.querySelector('input[name="name"]');
+    if (nameInput) nameInput.focus();
+  }
+
   function initTicketPickers() {
     document.querySelectorAll(".ticket-picker").forEach(function (picker) {
       var minus = picker.querySelector(".qty-minus");
@@ -188,7 +274,10 @@ document.addEventListener("DOMContentLoaded", function () {
       var bookBtn = picker.querySelector(".book-btn");
       if (!minus || !plus || !valueEl || !bookBtn) return;
       var desc = bookBtn.getAttribute("data-worker-desc") || "Glistening Studio workshop";
-      var maxQty = MAX_TICKET_QTY;
+      var when = bookBtn.getAttribute("data-when") || "";
+      var eventId = bookBtn.getAttribute("data-event-id") || "";
+      var maxQty = parseInt(bookBtn.getAttribute("data-max-qty"), 10);
+      if (isNaN(maxQty) || maxQty < 1) maxQty = MAX_TICKET_QTY;
       var qty = picker._qty && picker._qty <= maxQty ? picker._qty : 1;
       function update() {
         picker._qty = qty;
@@ -197,12 +286,15 @@ document.addEventListener("DOMContentLoaded", function () {
         valueEl.setAttribute("aria-label", qty + (qty === 1 ? " ticket" : " tickets"));
         minus.disabled = qty <= 1;
         plus.disabled = qty >= maxQty;
-        var ticketDesc = desc + " - " + qty + " ticket" + (qty > 1 ? "s" : "");
-        bookBtn.setAttribute("href", WORKER_BOOK_URL + "?qty=" + qty + "&desc=" + encodeURIComponent(ticketDesc));
         bookBtn.textContent = qty === 1 ? "Boek workshop" : "Boek " + qty + " tickets";
       }
       minus.onclick = function () { if (qty > 1) { qty--; update(); } };
       plus.onclick = function () { if (qty < maxQty) { qty++; update(); } };
+      bookBtn.onclick = function (e) {
+        e.preventDefault();
+        var ticketDesc = desc + " - " + qty + " ticket" + (qty > 1 ? "s" : "");
+        openBookDialog({ eventId: eventId, qty: qty, desc: ticketDesc, when: when });
+      };
       update();
     });
   }

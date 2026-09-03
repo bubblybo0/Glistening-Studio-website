@@ -162,18 +162,33 @@
         ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDay; });
         ["tod1en","tod2en","tod3en"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDayEn; });
 
-        var soldOut = ev.status && ev.status !== "available";
-        if (soldOut) {
+        function showSoldOut() {
           document.querySelectorAll(".ticket-picker").forEach(function (p) {
             p.innerHTML = '<p class="soldout-note"><strong>Deze workshop is uitverkocht.</strong> Mail me gerust via <a href="mailto:info@glisteningstudio.com">info@glisteningstudio.com</a> voor een wachtlijst of de volgende datum.</p>';
           });
-          return;
         }
+        // Handmatig op "vol" gezet in events.json? Dan meteen uitverkocht tonen.
+        if (ev.status && ev.status !== "available") { showSoldOut(); return; }
+
+        // Datum + tijd + stad, met jaartal, voor de bevestigingsmail en het seintje.
+        var year = new Date(ev.start).getFullYear();
+        var whenLabel = L.dutchDate + " " + year + ", " + L.time + " uur, " + ev.city;
         var eventDesc = L.dutchDate + " - " + ev.city;
-        [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
-          if (btn) btn.setAttribute("data-worker-desc", eventDesc);
+
+        // Live beschikbaarheid ophalen: hoeveel plekken zijn al betaald?
+        window.glsFetchAvailability().then(function (avail) {
+          var sold = (avail.sold && avail.sold[ev.id]) || 0;
+          var remaining = Math.max(0, (avail.capacity || 15) - sold);
+          if (remaining <= 0) { showSoldOut(); return; }
+          [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
+            if (!btn) return;
+            btn.setAttribute("data-worker-desc", eventDesc);
+            btn.setAttribute("data-event-id", ev.id);
+            btn.setAttribute("data-when", whenLabel);
+            btn.setAttribute("data-max-qty", String(remaining));
+          });
+          document.dispatchEvent(new CustomEvent("eventDataReady"));
         });
-        document.dispatchEvent(new CustomEvent("eventDataReady"));
       })
       .catch(function (err) {
         console.error("Could not load events.json", err);
