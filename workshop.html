@@ -53,9 +53,9 @@
       <p class="lede">Los boeken · <span id="evCity2">—</span> · <span id="evTime1">—</span> uur · €45 p.p.</p>
       <div class="ticket-picker">
         <div class="qty-stepper">
-          <button type="button" class="qty-btn qty-minus" aria-label="Minder tickets">−</button>
-          <span class="qty-value" aria-live="polite">1</span>
-          <button type="button" class="qty-btn qty-plus" aria-label="Meer tickets">+</button>
+          <button type="button" class="qty-btn qty-minus" aria-label="Aantal tickets verlagen">−</button>
+          <span class="qty-value" aria-live="polite" aria-label="1 ticket">1</span>
+          <button type="button" class="qty-btn qty-plus" aria-label="Aantal tickets verhogen">+</button>
         </div>
         <a class="btn btn-primary book-btn" id="bookBtnTop" href="#">Boek workshop</a>
       </div>
@@ -107,9 +107,9 @@
 
       <div class="ticket-picker" style="margin-top:40px;">
         <div class="qty-stepper">
-          <button type="button" class="qty-btn qty-minus" aria-label="Minder tickets">−</button>
-          <span class="qty-value" aria-live="polite">1</span>
-          <button type="button" class="qty-btn qty-plus" aria-label="Meer tickets">+</button>
+          <button type="button" class="qty-btn qty-minus" aria-label="Aantal tickets verlagen">−</button>
+          <span class="qty-value" aria-live="polite" aria-label="1 ticket">1</span>
+          <button type="button" class="qty-btn qty-plus" aria-label="Aantal tickets verhogen">+</button>
         </div>
         <a class="btn btn-primary book-btn" id="bookBtnBottom" href="#">Boek workshop</a>
       </div>
@@ -130,33 +130,57 @@
   (function () {
     var params = new URLSearchParams(window.location.search);
     var eventId = params.get("event");
+    var main = document.getElementById("main");
+    function showMessage(title, text) {
+      main.innerHTML = '<section class="hero hero-center"><div class="wrap">' +
+        '<span class="eyebrow">Workshop</span>' +
+        '<h1>' + title + '</h1>' +
+        '<p class="lede">' + text + '</p>' +
+        '<div class="actions" style="justify-content:center;margin-top:24px;">' +
+          '<a class="btn btn-primary" href="workshops.html#agenda">Naar de agenda</a>' +
+        '</div></div></section>';
+    }
     fetch("events.json")
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (events) {
-        var ev = events.find(function (e) { return e.id === eventId; }) || events[0];
-        if (!ev) return;
-        document.getElementById("pageTitle").textContent = "Workshop " + ev.dutchDate + " — " + ev.city + " — Glistening Studio";
-        document.getElementById("metaDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + ev.dutchDate + " in " + ev.city + ". Alle info over deze workshop van Glistening Studio.");
-        document.getElementById("ogTitle").setAttribute("content", "Workshop " + ev.dutchDate + " — " + ev.city + " — Glistening Studio");
-        document.getElementById("ogDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + ev.dutchDate + " in " + ev.city + ".");
-        ["evDateLabel"].forEach(function (id) { document.getElementById(id).textContent = ev.dateLabel; });
+        var ev = events.find(function (e) { return e.id === eventId; });
+        if (!ev || !window.glsIsUpcoming(ev.start)) {
+          showMessage("Deze workshop is niet gevonden of al voorbij", "Misschien is de datum verlopen of klopte de link niet helemaal. Bekijk de agenda voor de eerstvolgende workshops.");
+          return;
+        }
+        var L = window.glsEventLabels(ev.start);
+        document.getElementById("pageTitle").textContent = "Workshop " + L.dutchDate + " — " + ev.city + " — Glistening Studio";
+        document.getElementById("metaDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + L.dutchDate + " in " + ev.city + ". Alle info over deze workshop van Glistening Studio.");
+        document.getElementById("ogTitle").setAttribute("content", "Workshop " + L.dutchDate + " — " + ev.city + " — Glistening Studio");
+        document.getElementById("ogDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + L.dutchDate + " in " + ev.city + ".");
+        ["evDateLabel"].forEach(function (id) { document.getElementById(id).textContent = L.dateLabel; });
         ["evCity1","evCity2","evCity3","evCity4"].forEach(function (id) { document.getElementById(id).textContent = ev.city; });
-        ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = ev.time; });
-        document.getElementById("evTime3").textContent = ev.time;
-        document.getElementById("evDutchDate").textContent = ev.dutchDate;
-        document.getElementById("evEnglishDate").textContent = ev.englishDate;
-        ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = ev.timeOfDay; });
-        ["tod1en","tod2en","tod3en"].forEach(function (id) { document.getElementById(id).textContent = ev.timeOfDayEn; });
-        var eventDesc = ev.dutchDate + " - " + ev.city;
-        var topBtn = document.getElementById("bookBtnTop");
-        var bottomBtn = document.getElementById("bookBtnBottom");
-        [topBtn, bottomBtn].forEach(function (btn) {
-          btn.setAttribute("data-worker-desc", eventDesc);
+        ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = L.time; });
+        document.getElementById("evTime3").textContent = L.time;
+        document.getElementById("evDutchDate").textContent = L.dutchDate;
+        document.getElementById("evEnglishDate").textContent = L.englishDate;
+        ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDay; });
+        ["tod1en","tod2en","tod3en"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDayEn; });
+
+        var soldOut = ev.status && ev.status !== "available";
+        if (soldOut) {
+          document.querySelectorAll(".ticket-picker").forEach(function (p) {
+            p.innerHTML = '<p class="soldout-note"><strong>Deze workshop is uitverkocht.</strong> Mail me gerust via <a href="mailto:info@glisteningstudio.com">info@glisteningstudio.com</a> voor een wachtlijst of de volgende datum.</p>';
+          });
+          return;
+        }
+        var eventDesc = L.dutchDate + " - " + ev.city;
+        [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
+          if (btn) btn.setAttribute("data-worker-desc", eventDesc);
         });
         document.dispatchEvent(new CustomEvent("eventDataReady"));
       })
-      .catch(function (err) { console.error("Could not load events.json", err); });
+      .catch(function (err) {
+        console.error("Could not load events.json", err);
+        showMessage("De workshop kon even niet geladen worden", "Probeer het zo nog eens, of bekijk de agenda voor alle workshops.");
+      });
   })();
 </script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2cd4233c8d84470082fc4e838baf9218"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

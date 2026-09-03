@@ -1,37 +1,81 @@
 // GlisteningStudio — small helper script (no dependencies, no build step)
+
+// --- Gedeelde datum-helper -------------------------------------------------
+// Beschikbaar voor de losse pagina-scripts (workshops.html / workshop.html).
+// Rekent uit één ISO-datum ("2026-10-02T19:00:00+02:00") alle labels uit,
+// zodat events.json alleen datum/tijd/stad hoeft te bevatten. Zomer-/wintertijd
+// gaat automatisch goed via de tijdzone Europe/Amsterdam.
+(function () {
+  var TZ = "Europe/Amsterdam";
+  window.glsEventLabels = function (startISO) {
+    var d = new Date(startISO);
+    var dutchDate = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "long", timeZone: TZ }).format(d);
+    var englishDate = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: TZ }).format(d);
+    var dateLabel = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: TZ }).format(d).replace(/\.$/, "");
+    var time = new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: TZ }).format(d);
+    var hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: TZ }).format(d));
+    var timeOfDay, timeOfDayEn;
+    if (hour < 12) { timeOfDay = "ochtend"; timeOfDayEn = "morning"; }
+    else if (hour < 18) { timeOfDay = "middag"; timeOfDayEn = "afternoon"; }
+    else { timeOfDay = "avond"; timeOfDayEn = "evening"; }
+    return { dateLabel: dateLabel, dutchDate: dutchDate, englishDate: englishDate, time: time, timeOfDay: timeOfDay, timeOfDayEn: timeOfDayEn };
+  };
+  // Is de workshop nog niet voorbij? (kleine marge zodat een workshop pas de
+  // dag erna uit de agenda verdwijnt, niet al zodra hij begint.)
+  window.glsIsUpcoming = function (startISO) {
+    var start = new Date(startISO).getTime();
+    return start + 12 * 60 * 60 * 1000 > Date.now();
+  };
+})();
+
 document.addEventListener("DOMContentLoaded", function () {
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // --- Menu (met focusbeheer voor toegankelijkheid) ------------------------
   var menuToggle = document.getElementById("menuToggle");
   var navClose = document.getElementById("navClose");
   var overlay = document.getElementById("navOverlay");
+  // Delen van de pagina die we voor hulptechnologie afschermen als het menu open is.
+  var pageRegions = [
+    document.querySelector("nav.site-nav"),
+    document.getElementById("main"),
+    document.querySelector("footer.site")
+  ].filter(Boolean);
+
   function openNav() {
     overlay.classList.add("open");
     document.body.classList.add("nav-open");
     menuToggle.setAttribute("aria-expanded", "true");
+    pageRegions.forEach(function (el) { el.setAttribute("aria-hidden", "true"); });
+    var first = overlay.querySelector("a[href], button");
+    if (first) first.focus();
   }
   function closeNav() {
     overlay.classList.remove("open");
     document.body.classList.remove("nav-open");
     menuToggle.setAttribute("aria-expanded", "false");
+    pageRegions.forEach(function (el) { el.removeAttribute("aria-hidden"); });
+    if (menuToggle) menuToggle.focus();
   }
   if (menuToggle && overlay) {
     menuToggle.addEventListener("click", openNav);
     if (navClose) navClose.addEventListener("click", closeNav);
     overlay.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeNav); });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeNav();
+      if (e.key === "Escape" && overlay.classList.contains("open")) closeNav();
+    });
+    // Houd de focus binnen het open menu (focus-trap).
+    overlay.addEventListener("keydown", function (e) {
+      if (e.key !== "Tab") return;
+      var focusables = overlay.querySelectorAll("a[href], button");
+      if (!focusables.length) return;
+      var firstEl = focusables[0], lastEl = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
+      else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
     });
   }
 
-  // Respect reduced-motion: freeze the hero video on its poster frame instead of autoplaying
-  var heroVideo = document.querySelector(".hero-video-section video");
-  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (heroVideo && reduceMotion) {
-    heroVideo.removeAttribute("autoplay");
-    heroVideo.pause();
-  }
-
-  // Soft light glow that drifts toward the cursor — desktop/mouse only, off for touch
-  // devices and for anyone who prefers reduced motion.
+  // --- Zachte licht-glow die naar de cursor drijft (alleen muis, geen touch) ---
   var canHover = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   if (canHover && !reduceMotion) {
     var glow = document.createElement("div");
@@ -57,25 +101,41 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
   }
 
-  // Make sure every ambient/story video actually starts looping, even if the
-  // browser's autoplay policy silently blocked the autoplay attribute (in which
-  // case it would otherwise just sit frozen on its poster image forever).
-  var allVideos = document.querySelectorAll("video[autoplay]");
-  function tryPlayAll() {
-    allVideos.forEach(function (v) {
-      if (v.paused) {
-        var p = v.play();
-        if (p && p.catch) p.catch(function () {});
-      }
+  // --- Video's: rekening houden met "verminder beweging" + alleen laden/spelen
+  //     wanneer ze in beeld zijn (scheelt data en batterij, vooral op mobiel). --
+  var videos = document.querySelectorAll("video[autoplay]");
+  if (reduceMotion) {
+    // Bezoeker wil geen beweging: alle video's stilzetten op hun posterframe en
+    // niet opnieuw starten. Zo respecteren we dat voor ÁLLE video's, niet alleen de hero.
+    videos.forEach(function (v) {
+      v.removeAttribute("autoplay");
+      try { v.pause(); } catch (e) {}
     });
+  } else {
+    videos.forEach(function (v) {
+      // Hero-/achtergrondvideo bovenaan blijft direct laden; de rest pas als het nodig is.
+      var isHero = v.closest(".hero-video-section") || v.classList.contains("page-ambient-bg");
+      if (!isHero) v.preload = "none";
+    });
+    if ("IntersectionObserver" in window) {
+      var vObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var v = entry.target;
+          if (entry.isIntersecting) {
+            if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+          } else if (!v.paused) {
+            try { v.pause(); } catch (e) {}
+          }
+        });
+      }, { threshold: 0.1 });
+      videos.forEach(function (v) { vObserver.observe(v); });
+    } else {
+      // Oude browser zonder IntersectionObserver: gewoon proberen te spelen.
+      videos.forEach(function (v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); });
+    }
   }
-  tryPlayAll();
-  window.addEventListener("load", tryPlayAll);
-  ["click", "touchstart", "scroll"].forEach(function (evt) {
-    document.addEventListener(evt, tryPlayAll, { once: true, passive: true });
-  });
 
-  // Fade + lift each .reveal element into place the first time it scrolls into view
+  // Fade + lift elk .reveal-element in beeld de eerste keer dat het zichtbaar wordt
   var revealEls = document.querySelectorAll(".reveal");
   if (revealEls.length) {
     if (reduceMotion || !("IntersectionObserver" in window)) {
@@ -94,9 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       revealEls.forEach(function (el) { observer.observe(el); });
 
-      // Safety net: IntersectionObserver can miss an element in rare cases
-      // (e.g. a video changing the row's height right as it scrolls into
-      // view). Without this, a missed element would stay invisible forever.
+      // Vangnet: IntersectionObserver kan in zeldzame gevallen een element missen.
       var revealFallback = function () {
         revealEls.forEach(function (el) {
           if (el.classList.contains("is-visible")) return;
@@ -111,21 +169,17 @@ document.addEventListener("DOMContentLoaded", function () {
       window.addEventListener("resize", revealFallback);
       window.addEventListener("load", revealFallback);
       setTimeout(revealFallback, 1500);
-      // Last resort: never leave content permanently invisible.
+      // Laatste redmiddel: laat inhoud nooit permanent onzichtbaar.
       setTimeout(function () {
         revealEls.forEach(function (el) { el.classList.add("is-visible"); });
       }, 6000);
     }
   }
 
-  // Ticket quantity stepper: +/- buttons build a "Boek workshop" link that goes
-  // straight to the Cloudflare Worker, which creates a Mollie payment on the fly
-  // for whatever quantity is chosen (no more pre-made per-quantity Mollie links).
-  // initTicketPickers is re-run whenever event data finishes loading async (see
-  // workshop.html), since the description may start empty on pages that fetch
-  // events.json.
+  // Ticket-stepper: +/- bouwen een "Boek workshop"-link die naar de Cloudflare
+  // Worker gaat, die op dat moment een Mollie-betaling maakt voor het gekozen aantal.
   var WORKER_BOOK_URL = "https://glistening-studio-tickets.noisy-surf-d8b5.workers.dev/book";
-  var MAX_TICKET_QTY = 8;
+  var MAX_TICKET_QTY = 15;
   function initTicketPickers() {
     document.querySelectorAll(".ticket-picker").forEach(function (picker) {
       var minus = picker.querySelector(".qty-minus");
@@ -139,6 +193,8 @@ document.addEventListener("DOMContentLoaded", function () {
       function update() {
         picker._qty = qty;
         valueEl.textContent = qty;
+        // Hoorbare context voor schermlezers: "1 ticket" / "3 tickets".
+        valueEl.setAttribute("aria-label", qty + (qty === 1 ? " ticket" : " tickets"));
         minus.disabled = qty <= 1;
         plus.disabled = qty >= maxQty;
         var ticketDesc = desc + " - " + qty + " ticket" + (qty > 1 ? "s" : "");
@@ -153,15 +209,15 @@ document.addEventListener("DOMContentLoaded", function () {
   initTicketPickers();
   document.addEventListener("eventDataReady", initTicketPickers);
 
-  // Slow-motion playback for specific ambient background videos
-  var slowMotionIds = ["workshopSectionVideo"];
-  slowMotionIds.forEach(function (id) {
-    var v = document.getElementById(id);
-    if (v) v.playbackRate = 0.5;
-  });
+  // Slow-motion voor specifieke sfeer-achtergrondvideo's (niet bij verminderde beweging)
+  if (!reduceMotion) {
+    ["workshopSectionVideo"].forEach(function (id) {
+      var v = document.getElementById(id);
+      if (v) v.playbackRate = 0.5;
+    });
+  }
 
-  // "Vertaal naar Engels" link in the nav — opens a Google Translate view of
-  // the current page in a new tab. Plain text link, no flag icons.
+  // "Vertaal naar Engels"-link in de nav — opent Google Translate in een nieuw tabblad.
   var translateLink = document.getElementById("translateLink");
   if (translateLink) {
     translateLink.addEventListener("click", function (e) {
