@@ -79,7 +79,7 @@ async function handleAvailability(env) {
 async function handleBook(request, env, url) {
   // Nieuwe manier: het formulier op de site stuurt een POST met naam/e-mail.
   // Oude manier: een gecachte link stuurt een GET met alleen ?qty & ?desc.
-  let eventId, qty, desc, when, name, email, diet;
+  let eventId, qty, desc, when, name, email, diet, lang;
 
   if (request.method === "POST") {
     const form = await request.formData();
@@ -90,6 +90,7 @@ async function handleBook(request, env, url) {
     name = (form.get("name") || "").toString().trim();
     email = (form.get("email") || "").toString().trim();
     diet = (form.get("diet") || "").toString().trim();
+    lang = (form.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
 
     if (!name || !email) {
       return htmlPage("Vul je naam en e-mail in", "Ga terug en vul je naam en e-mailadres in, dan kun je verder naar de betaling.");
@@ -101,7 +102,12 @@ async function handleBook(request, env, url) {
     eventId = (url.searchParams.get("event") || "").toString().trim();
     when = "";
     name = email = diet = "";
+    lang = (url.searchParams.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
   }
+
+  // Taal bepaalt de Mollie-checkout-taal en waar de klant na betaling terugkomt.
+  const checkoutLocale = lang === "en" ? "en_US" : "nl_NL";
+  const thanksPath = lang === "en" ? "/en/bedankt.html" : "/bedankt.html";
 
   // Max 15 afdwingen (op basis van reeds betaalde plekken).
   if (eventId) {
@@ -127,9 +133,10 @@ async function handleBook(request, env, url) {
     body: JSON.stringify({
       amount: { currency: "EUR", value: amount },
       description: `${desc} - ${qty} ticket${qty > 1 ? "s" : ""}`,
-      redirectUrl: `${SITE}/bedankt.html`,
+      locale: checkoutLocale,
+      redirectUrl: `${SITE}${thanksPath}`,
       webhookUrl: `${url.origin}/webhook`,
-      metadata: { eventId, qty, when, name, email, diet },
+      metadata: { eventId, qty, when, name, email, diet, lang },
     }),
   });
 

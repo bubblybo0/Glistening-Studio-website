@@ -47,6 +47,47 @@
 document.addEventListener("DOMContentLoaded", function () {
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // --- Taal (nl standaard; en op de /en/-pagina's via <html lang="en">) -----
+  // De losse pagina-teksten staan gewoon in de HTML; dit is alleen voor de
+  // strings die main.js zelf opbouwt (boek-venster + ticket-stepper).
+  var LANG = document.documentElement.getAttribute("lang") === "en" ? "en" : "nl";
+  var STR = {
+    nl: {
+      dialogTitle: "Je plek reserveren",
+      close: "Sluiten",
+      name: "Je naam",
+      email: "Je e-mailadres",
+      diet: "Dieetwensen of allergie&euml;n?",
+      optional: "(optioneel)",
+      privacy: "We gebruiken je gegevens alleen voor deze boeking.",
+      cancel: "Annuleren",
+      toPayment: "Naar betaling &rarr;",
+      working: "Bezig…",
+      spot: "plek", spots: "plekken",
+      bookWorkshop: "Boek workshop",
+      bookMany: function (q) { return "Boek " + q + " tickets"; },
+      ticketAria: function (q) { return q + (q === 1 ? " ticket" : " tickets"); },
+      defaultDesc: "Glistening Studio workshop"
+    },
+    en: {
+      dialogTitle: "Reserve your spot",
+      close: "Close",
+      name: "Your name",
+      email: "Your email address",
+      diet: "Dietary needs or allergies?",
+      optional: "(optional)",
+      privacy: "We only use your details for this booking.",
+      cancel: "Cancel",
+      toPayment: "To payment &rarr;",
+      working: "Working…",
+      spot: "spot", spots: "spots",
+      bookWorkshop: "Book workshop",
+      bookMany: function (q) { return "Book " + q + " tickets"; },
+      ticketAria: function (q) { return q + (q === 1 ? " ticket" : " tickets"); },
+      defaultDesc: "Glistening Studio workshop"
+    }
+  }[LANG];
+
   // --- Menu (met focusbeheer voor toegankelijkheid) ------------------------
   var menuToggle = document.getElementById("menuToggle");
   var navClose = document.getElementById("navClose");
@@ -206,26 +247,28 @@ document.addEventListener("DOMContentLoaded", function () {
     d.className = "book-dialog";
     d.innerHTML =
       '<form class="book-form" method="post" action="' + WORKER_BOOK_URL + '" novalidate>' +
-        '<button type="button" class="book-dialog-close" aria-label="Sluiten">&times;</button>' +
-        '<h2>Je plek reserveren</h2>' +
+        '<button type="button" class="book-dialog-close" aria-label="' + STR.close + '">&times;</button>' +
+        '<h2>' + STR.dialogTitle + '</h2>' +
         '<p class="book-summary" data-summary></p>' +
         '<input type="hidden" name="eventId" data-eventid>' +
         '<input type="hidden" name="qty" data-qty>' +
         '<input type="hidden" name="desc" data-desc>' +
         '<input type="hidden" name="when" data-when>' +
-        '<label class="book-field">Je naam' +
+        '<input type="hidden" name="lang" value="' + LANG + '">' +
+        '<input type="hidden" name="locale" value="' + (LANG === "en" ? "en_US" : "nl_NL") + '">' +
+        '<label class="book-field">' + STR.name +
           '<input type="text" name="name" autocomplete="name" required>' +
         '</label>' +
-        '<label class="book-field">Je e-mailadres' +
+        '<label class="book-field">' + STR.email +
           '<input type="email" name="email" autocomplete="email" required>' +
         '</label>' +
-        '<label class="book-field">Dieetwensen of allergie&euml;n? <span class="book-opt">(optioneel)</span>' +
+        '<label class="book-field">' + STR.diet + ' <span class="book-opt">' + STR.optional + '</span>' +
           '<textarea name="diet" rows="2"></textarea>' +
         '</label>' +
-        '<p class="book-privacy">We gebruiken je gegevens alleen voor deze boeking.</p>' +
+        '<p class="book-privacy">' + STR.privacy + '</p>' +
         '<div class="book-actions">' +
-          '<button type="button" class="btn btn-ghost" data-cancel>Annuleren</button>' +
-          '<button type="submit" class="btn btn-primary" data-submit>Naar betaling &rarr;</button>' +
+          '<button type="button" class="btn btn-ghost" data-cancel>' + STR.cancel + '</button>' +
+          '<button type="submit" class="btn btn-primary" data-submit>' + STR.toPayment + '</button>' +
         '</div>' +
       '</form>';
     document.body.appendChild(d);
@@ -239,7 +282,7 @@ document.addEventListener("DOMContentLoaded", function () {
     form.addEventListener("submit", function () {
       var btn = d.querySelector("[data-submit]");
       btn.disabled = true;
-      btn.textContent = "Bezig…";
+      btn.textContent = STR.working;
     });
     bookDialog = d;
     return d;
@@ -253,13 +296,13 @@ document.addEventListener("DOMContentLoaded", function () {
     d.querySelector("[data-when]").value = opts.when || "";
     var total = (45 * opts.qty).toFixed(2).replace(".", ",");
     d.querySelector("[data-summary]").innerHTML =
-      "<strong>" + opts.qty + " plek" + (opts.qty === 1 ? "" : "ken") + "</strong>" +
+      "<strong>" + opts.qty + " " + (opts.qty === 1 ? STR.spot : STR.spots) + "</strong>" +
       (opts.when ? " &middot; " + opts.when : "") +
       " &middot; &euro;" + total;
     // Verzendknop weer activeren (voor het geval een vorige poging afbrak).
     var btn = d.querySelector("[data-submit]");
     btn.disabled = false;
-    btn.innerHTML = "Naar betaling &rarr;";
+    btn.innerHTML = STR.toPayment;
     if (typeof d.showModal === "function") d.showModal();
     else d.setAttribute("open", "");
     var nameInput = d.querySelector('input[name="name"]');
@@ -273,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var valueEl = picker.querySelector(".qty-value");
       var bookBtn = picker.querySelector(".book-btn");
       if (!minus || !plus || !valueEl || !bookBtn) return;
-      var desc = bookBtn.getAttribute("data-worker-desc") || "Glistening Studio workshop";
+      var desc = bookBtn.getAttribute("data-worker-desc") || STR.defaultDesc;
       var when = bookBtn.getAttribute("data-when") || "";
       var eventId = bookBtn.getAttribute("data-event-id") || "";
       var maxQty = parseInt(bookBtn.getAttribute("data-max-qty"), 10);
@@ -283,10 +326,10 @@ document.addEventListener("DOMContentLoaded", function () {
         picker._qty = qty;
         valueEl.textContent = qty;
         // Hoorbare context voor schermlezers: "1 ticket" / "3 tickets".
-        valueEl.setAttribute("aria-label", qty + (qty === 1 ? " ticket" : " tickets"));
+        valueEl.setAttribute("aria-label", STR.ticketAria(qty));
         minus.disabled = qty <= 1;
         plus.disabled = qty >= maxQty;
-        bookBtn.textContent = qty === 1 ? "Boek workshop" : "Boek " + qty + " tickets";
+        bookBtn.textContent = qty === 1 ? STR.bookWorkshop : STR.bookMany(qty);
       }
       minus.onclick = function () { if (qty > 1) { qty--; update(); } };
       plus.onclick = function () { if (qty < maxQty) { qty++; update(); } };
@@ -309,13 +352,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // "Vertaal naar Engels"-link in de nav — opent Google Translate in een nieuw tabblad.
-  var translateLink = document.getElementById("translateLink");
-  if (translateLink) {
-    translateLink.addEventListener("click", function (e) {
-      e.preventDefault();
-      var target = "https://translate.google.com/translate?sl=nl&tl=en&u=" + encodeURIComponent(window.location.href);
-      window.open(target, "_blank", "noopener");
+  // Taalknop: op de workshop-detailpagina nemen we de ?event-parameter mee naar
+  // de andere taalversie, zodat die hetzelfde evenement toont. De link werkt ook
+  // zonder JS (de href in de HTML wijst al naar de juiste tegenhanger).
+  if (window.location.search) {
+    document.querySelectorAll("a.lang-link[data-keep-query]").forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (href && href.indexOf("?") === -1) a.setAttribute("href", href + window.location.search);
     });
   }
 });
