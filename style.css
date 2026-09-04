@@ -1043,3 +1043,88 @@ footer.site a { color: var(--text-muted); }
   .book-actions { flex-direction: column-reverse; }
   .book-actions .btn { width: 100%; }
 }
+
+/* ==========================================================================
+   Mobile refinements
+   The homepage hero used a "shrink text to keep it on one line" trick
+   (min(Xvw, …) + white-space: nowrap). On phones that made the heading and
+   lede far too small. Below the point where the layout stacks, we switch to
+   normal responsive sizing and let the text wrap.
+   ========================================================================== */
+@media (max-width: 860px) {
+  .hero-intro { padding: clamp(36px, 9vw, 64px) 0 clamp(28px, 7vw, 48px); }
+  .hero-intro h1 {
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
+    white-space: normal;
+  }
+  .hero-intro .lede {
+    font-size: 1.05rem;
+    white-space: normal;
+    max-width: 34ch;
+  }
+}
+
+/* Feiten-regel: laat de regel netjes afbreken tussen de losse feiten in
+   plaats van van het scherm af te lopen. */
+.facts-line { overflow-wrap: break-word; }
+
+@media (max-width: 560px) {
+  /* Wat compactere buitenmarges op smalle telefoons. */
+  .wrap { padding: 0 18px; }
+  /* Volledige-breedte knoppen in de hero-acties, zodat ze niet half-half
+     naast elkaar vallen op smalle schermen. */
+  .hero .actions .btn,
+  .hero-intro .actions .btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* Over mij: op mobiel altijd hetzelfde ritme — eerst tekst, dan beeld — in
+   plaats van de om-en-om links/rechts-indeling van desktop. De rijen bleven op
+   mobiel nog naast elkaar staan (grid-template-columns: 1fr 1fr wint van de
+   inklap-regel), dus we klappen ze hier expliciet in tot één kolom en dwingen
+   met order overal tekst-boven-beeld af. */
+@media (max-width: 820px) {
+  .story-row-even { grid-template-columns: 1fr; }
+  .story-row-even .story-text { order: 0; }
+  .story-row-even .story-photo { order: 1; }
+}
+
+/* Homepage "Maak een suncatcher"-kaart: op mobiel netjes in één kolom,
+   met video én tekst gecentreerd (op desktop blijft het beeld-naast-tekst). */
+@media (max-width: 820px) {
+  .workshop-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .workshop-card > div { width: 100%; }
+  .workshop-card .photo.portrait {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
+
+/* ==========================================================================
+   Menu-overlay: zachte, doorlopende hero-video als achtergrond
+   ========================================================================== */
+.nav-overlay-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  filter: brightness(1.12) saturate(0.9);
+  z-index: 0;
+  pointer-events: none;
+}
+/* Links en sluitknop boven de video houden. */
+.nav-overlay a { position: relative; z-index: 1; }
+.nav-overlay .close-btn { z-index: 1; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .nav-overlay-bg { opacity: 0.3; filter: brightness(0.9) saturate(0.9); }
+}
+:root[data-theme="dark"] .nav-overlay-bg { opacity: 0.3; filter: brightness(0.9) saturate(0.9); }
+@media (prefers-reduced-motion: reduce) {
+  .nav-overlay-bg { display: none; }
+}
