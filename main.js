@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function () {
     d.querySelector("[data-qty]").value = opts.qty;
     d.querySelector("[data-desc]").value = opts.desc;
     d.querySelector("[data-when]").value = opts.when || "";
-    var total = (45 * opts.qty).toFixed(2).replace(".", ",");
+    var total = (55 * opts.qty).toFixed(2).replace(".", ",");
     d.querySelector("[data-summary]").innerHTML =
       "<strong>" + opts.qty + " " + (opts.qty === 1 ? STR.spot : STR.spots) + "</strong>" +
       (opts.when ? " &middot; " + opts.when : "") +

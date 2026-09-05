@@ -1,12 +1,12 @@
 [
-  { "id": "2026-09-09-1900", "start": "2026-09-09T19:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-09-11-1900", "start": "2026-09-11T19:00:00+02:00", "city": "Gouda", "price": 45, "status": "available" },
-  { "id": "2026-09-29-1900", "start": "2026-09-29T19:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-02-1900", "start": "2026-10-02T19:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-08-1900", "start": "2026-10-08T19:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-10-1300", "start": "2026-10-10T13:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-14-1900", "start": "2026-10-14T19:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-17-1300", "start": "2026-10-17T13:00:00+02:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-27-1900", "start": "2026-10-27T19:00:00+01:00", "city": "Den Haag", "price": 45, "status": "available" },
-  { "id": "2026-10-30-1900", "start": "2026-10-30T19:00:00+01:00", "city": "Den Haag", "price": 45, "status": "available" }
+  { "id": "2026-09-09-1900", "start": "2026-09-09T19:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-09-11-1900", "start": "2026-09-11T19:00:00+02:00", "city": "Gouda", "price": 55, "status": "available" },
+  { "id": "2026-09-29-1900", "start": "2026-09-29T19:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-02-1900", "start": "2026-10-02T19:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-08-1900", "start": "2026-10-08T19:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-10-1300", "start": "2026-10-10T13:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-14-1900", "start": "2026-10-14T19:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-17-1300", "start": "2026-10-17T13:00:00+02:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-27-1900", "start": "2026-10-27T19:00:00+01:00", "city": "Den Haag", "price": 55, "status": "available" },
+  { "id": "2026-10-30-1900", "start": "2026-10-30T19:00:00+01:00", "city": "Den Haag", "price": 55, "status": "available" }
 ]

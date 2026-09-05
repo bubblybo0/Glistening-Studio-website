@@ -21,7 +21,7 @@ Eenmanszaak (Kiki), die zelf nog aan het leren is op technisch vlak — leg keuz
 
 ## Tickets / betalingen
 - Boekknoppen sturen naar een **Cloudflare Worker** (`glistening-studio-tickets`) die
-  per klik dynamisch een **Mollie**-betaling aanmaakt (€45/ticket, max 8).
+  per klik dynamisch een **Mollie**-betaling aanmaakt (€55/ticket, max 8).
 - Zie `WORKER_BOOK_URL` en `MAX_TICKET_QTY` in `main.js`.
 
 ## Harde regels

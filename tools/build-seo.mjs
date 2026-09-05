@@ -60,7 +60,7 @@ const jsonld = upcoming.map((ev) => ({
   url: `${SITE}/workshops.html#agenda`,
   offers: {
     "@type": "Offer",
-    price: String(ev.price != null ? ev.price : 45) + ".00",
+    price: String(ev.price != null ? ev.price : 55) + ".00",
     priceCurrency: "EUR",
     availability: ev.status && ev.status !== "available"
       ? "https://schema.org/SoldOut"

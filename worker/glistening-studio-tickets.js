@@ -21,7 +21,7 @@
 // ===========================================================================
 
 const CAPACITY = 15;                              // max. plekken per workshop
-const PRICE_PER_TICKET = 45;                      // prijs per ticket in euro
+const PRICE_PER_TICKET = 55;                      // prijs per ticket in euro
 const SITE = "https://glisteningstudio.com";      // je website
 const FROM_EMAIL = "Glistening Studio <info@mail.glisteningstudio.com>"; // afzender mails (Resend-subdomein)
 const NOTIFY_EMAIL = "info@glisteningstudio.com"; // waar jij het seintje krijgt (Fastmail, ongewijzigd)
