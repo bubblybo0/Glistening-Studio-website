@@ -1,0 +1,29 @@
+name: Deploy Worker
+
+# Zet de ticket-Worker automatisch live zodra er iets aan verandert op main.
+# (Je gewone site-bestanden gaan al via GitHub Pages; dit is alleen de Worker.)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/glistening-studio-tickets.js"
+      - "wrangler.toml"
+      - ".github/workflows/deploy-worker.yml"
+  # Laat je 'm ook handmatig starten via het tabblad "Actions" op GitHub.
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v4
+
+      - name: Naar Cloudflare deployen
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        env:
+          # Optioneel: alleen nodig als je token toegang heeft tot meerdere
+          # Cloudflare-accounts. Laat je 'm leeg, dan kiest Wrangler vanzelf.
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

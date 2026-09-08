@@ -1,0 +1,22 @@
+# ===========================================================================
+# Wrangler-configuratie voor de ticket-Worker
+# ---------------------------------------------------------------------------
+# Dit bestand zorgt dat een automatische deploy (via GitHub Actions) naar de
+# JUISTE Worker gaat, MÉT de KV-koppeling. Zonder deze config zou een deploy
+# een duplicaat maken of de teller stukmaken — vandaar dat dit klopt moet zijn.
+#
+# De geheimen (MOLLIE_API_KEY, RESEND_API_KEY) staan veilig in Cloudflare en
+# blijven bij een deploy gewoon staan; die horen NIET in dit bestand.
+# ===========================================================================
+
+name = "glistening-studio-tickets"
+main = "worker/glistening-studio-tickets.js"
+compatibility_date = "2025-01-01"
+
+# De KV-namespace waarin de Worker de verkochte plekken telt.
+# ⚠️ Vul hieronder de ID van de namespace "glistening-tickets" in.
+# Te vinden in: Cloudflare → Workers & Pages → KV → naast "glistening-tickets"
+# staat een ID (klik op de namespace of op het kopieer-icoon).
+[[kv_namespaces]]
+binding = "TICKETS"
+id = "baaf89b077b74e768031c1a81085109f"
