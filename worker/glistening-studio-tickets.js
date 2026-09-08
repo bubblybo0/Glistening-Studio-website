@@ -26,6 +26,25 @@ const SITE = "https://glisteningstudio.com";      // je website
 const FROM_EMAIL = "Glistening Studio <info@mail.glisteningstudio.com>"; // afzender mails (Resend-subdomein)
 const NOTIFY_EMAIL = "info@glisteningstudio.com"; // waar jij het seintje krijgt (Fastmail, ongewijzigd)
 
+// ---------------------------------------------------------------------------
+// KORTINGSCODES
+// ---------------------------------------------------------------------------
+// Elke code geeft 10% korting en is 2 maanden geldig, gerekend vanaf de datum
+// van de workshop (de dag waarop je 'm uitdeelt). Je hoeft dus alleen de code
+// en die datum op te geven — de vervaldatum rekent de Worker zelf uit.
+//
+// Een nieuwe code toevoegen? Zet er een regel bij in de lijst hieronder, bijv.:
+//   { code: "12OKT", from: "2026-10-12" },
+// De code is de datum in HOOFDLETTERS (zoals je 'm aan de deelnemers geeft);
+// hoofd-/kleine letters en spaties maken bij het invullen niet uit.
+// Verlopen codes mag je gewoon in de lijst laten staan — ze werken vanzelf niet
+// meer — of je haalt ze weg om het overzicht te bewaren.
+const DISCOUNT_PERCENT = 10;   // korting per geldige code (%)
+const DISCOUNT_MONTHS = 2;     // hoe lang een code geldig blijft na de workshopdatum
+const DISCOUNT_CODES = [
+  { code: "27AUG", from: "2026-08-27" },
+];
+
 // De /availability geeft alleen publieke tellingen terug (geen persoonsgegevens),
 // dus die mag elke pagina van de site opvragen — ook via www.
 const CORS = {
@@ -44,6 +63,9 @@ export default {
 
     if (url.pathname === "/availability") {
       return handleAvailability(env);
+    }
+    if (url.pathname === "/discount") {
+      return handleDiscount(url);
     }
     if (url.pathname === "/webhook" && request.method === "POST") {
       return handleWebhook(request, env, url);
@@ -66,6 +88,48 @@ async function readCounts(env) {
   }
 }
 
+// --- Kortingscodes ----------------------------------------------------------
+// Zoekt een ingevoerde code op en controleert of die nog geldig is. Geeft
+// { code, percent } terug bij een geldige code, anders null.
+function findDiscount(input) {
+  const code = String(input || "").trim().toUpperCase();
+  if (!code) return null;
+  const entry = DISCOUNT_CODES.find(function (c) {
+    return String(c.code).trim().toUpperCase() === code;
+  });
+  if (!entry) return null;
+  const from = new Date(entry.from + "T00:00:00Z");
+  if (isNaN(from.getTime())) return null;
+  const until = new Date(from);
+  until.setUTCMonth(until.getUTCMonth() + DISCOUNT_MONTHS);
+  until.setUTCHours(23, 59, 59, 999); // geldig t/m het einde van de vervaldag
+  if (Date.now() > until.getTime()) return null;
+  return { code: entry.code, percent: DISCOUNT_PERCENT };
+}
+
+// Berekent het te betalen bedrag (in euro, als "12.34"-string) voor een aantal
+// tickets, met de eventuele korting eraf. Rekent in centen om afrondingsgedoe
+// te voorkomen.
+function computeAmount(qty, discount) {
+  let cents = Math.round(PRICE_PER_TICKET * qty * 100);
+  if (discount && discount.percent) {
+    cents = Math.round((cents * (100 - discount.percent)) / 100);
+  }
+  return (cents / 100).toFixed(2);
+}
+
+// --- GET /discount?code=... -------------------------------------------------
+// Laat de site (het boek-venster) live checken of een code klopt, zodat de
+// klant het gekorte bedrag al ziet vóór de betaling. De echte korting wordt
+// altijd nog eens server-side bevestigd in /book, dus dit is puur voor de tonen.
+function handleDiscount(url) {
+  const d = findDiscount(url.searchParams.get("code"));
+  return json({ valid: !!d, percent: d ? d.percent : 0 }, 200, {
+    ...CORS,
+    "Cache-Control": "public, max-age=20",
+  });
+}
+
 // --- GET /availability ------------------------------------------------------
 async function handleAvailability(env) {
   const counts = await readCounts(env);
@@ -79,7 +143,7 @@ async function handleAvailability(env) {
 async function handleBook(request, env, url) {
   // Nieuwe manier: het formulier op de site stuurt een POST met naam/e-mail.
   // Oude manier: een gecachte link stuurt een GET met alleen ?qty & ?desc.
-  let eventId, qty, desc, when, name, email, diet, lang;
+  let eventId, qty, desc, when, name, email, diet, lang, discountInput;
 
   if (request.method === "POST") {
     const form = await request.formData();
@@ -91,6 +155,7 @@ async function handleBook(request, env, url) {
     email = (form.get("email") || "").toString().trim();
     diet = (form.get("diet") || "").toString().trim();
     lang = (form.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
+    discountInput = (form.get("discount") || "").toString();
 
     if (!name || !email) {
       return htmlPage("Vul je naam en e-mail in", "Ga terug en vul je naam en e-mailadres in, dan kun je verder naar de betaling.");
@@ -103,7 +168,11 @@ async function handleBook(request, env, url) {
     when = "";
     name = email = diet = "";
     lang = (url.searchParams.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
+    discountInput = (url.searchParams.get("discount") || "").toString();
   }
+
+  // Kortingscode server-side valideren (nooit op de client vertrouwen voor het bedrag).
+  const discount = findDiscount(discountInput);
 
   // Taal bepaalt de Mollie-checkout-taal en waar de klant na betaling terugkomt.
   const checkoutLocale = lang === "en" ? "en_US" : "nl_NL";
@@ -122,7 +191,8 @@ async function handleBook(request, env, url) {
     }
   }
 
-  const amount = (PRICE_PER_TICKET * qty).toFixed(2);
+  const amount = computeAmount(qty, discount);
+  const discountNote = discount ? ` (-${discount.percent}% code ${discount.code})` : "";
 
   const mollieRes = await fetch("https://api.mollie.com/v2/payments", {
     method: "POST",
@@ -132,11 +202,16 @@ async function handleBook(request, env, url) {
     },
     body: JSON.stringify({
       amount: { currency: "EUR", value: amount },
-      description: `${desc} - ${qty} ticket${qty > 1 ? "s" : ""}`,
+      description: `${desc} - ${qty} ticket${qty > 1 ? "s" : ""}${discountNote}`,
       locale: checkoutLocale,
       redirectUrl: `${SITE}${thanksPath}`,
       webhookUrl: `${url.origin}/webhook`,
-      metadata: { eventId, qty, when, name, email, diet, lang },
+      metadata: {
+        eventId, qty, when, name, email, diet, lang,
+        amount,
+        discount: discount ? discount.code : "",
+        discountPercent: discount ? discount.percent : 0,
+      },
     }),
   });
 
@@ -211,7 +286,11 @@ async function sendEmails(env, meta, qty, newCount) {
   const email = (meta.email || "").toString().trim();
   const when = (meta.when || "").toString().trim() || "je gekozen datum";
   const diet = (meta.diet || "").toString().trim();
-  const amount = (PRICE_PER_TICKET * qty).toFixed(2);
+  // Het echt betaalde bedrag zetten we bij het boeken in de metadata; valt dat
+  // om welke reden dan ook weg, dan rekenen we terug zonder korting.
+  const amount = (meta.amount || computeAmount(qty, null)).toString();
+  const discountCode = (meta.discount || "").toString().trim();
+  const discountPercent = parseInt(meta.discountPercent, 10) || 0;
 
   // 1) Bevestiging aan de klant (jouw goedgekeurde tekst).
   if (email) {
@@ -246,6 +325,7 @@ async function sendEmails(env, meta, qty, newCount) {
       <strong>Aantal:</strong> ${qty} plek${qty > 1 ? "ken" : ""}<br>
       <strong>Workshop:</strong> ${escapeHtml(when)}<br>
       <strong>Dieetwensen:</strong> ${escapeHtml(diet || "—")}<br>
+      ${discountCode ? `<strong>Kortingscode:</strong> ${escapeHtml(discountCode)} (−${discountPercent}%)<br>` : ""}
       <strong>Betaald:</strong> €${amount}<br>
       ${newCount != null ? `<strong>Plekken nu bezet:</strong> ${newCount} / ${CAPACITY}` : ""}</p>
     </div>`;

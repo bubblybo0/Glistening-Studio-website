@@ -1052,6 +1052,39 @@ footer.site a { color: var(--text-muted); }
   .book-actions .btn { width: 100%; }
 }
 
+/* Kortingscode-veld in het boek-venster */
+.book-discount-row { display: flex; gap: 8px; margin-top: 6px; }
+.book-discount-row input { margin-top: 0; flex: 1 1 auto; text-transform: uppercase; }
+.book-discount-row input::placeholder { text-transform: none; }
+.book-discount-apply {
+  flex: 0 0 auto;
+  padding: 11px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.book-discount-apply:disabled { opacity: 0.6; cursor: default; }
+.book-discount-msg {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  min-height: 1.1em;
+}
+.book-discount-msg.is-ok { color: var(--accent-2); }
+.book-discount-msg.is-bad { color: #cf5b4e; }
+/* Doorgestreepte oude prijs + korting-badge in de samenvatting */
+.book-old-price { text-decoration: line-through; opacity: 0.7; }
+.book-save {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* ==========================================================================
    Mobile refinements
    The homepage hero used a "shrink text to keep it on one line" trick

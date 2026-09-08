@@ -63,6 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
       cancel: "Annuleren",
       toPayment: "Naar betaling &rarr;",
       working: "Bezig…",
+      discount: "Kortingscode",
+      discountApply: "Toepassen",
+      discountChecking: "Bezig met controleren…",
+      discountApplied: function (p) { return "✓ " + p + "% korting toegepast"; },
+      discountInvalid: "Deze kortingscode is niet (meer) geldig.",
       spot: "plek", spots: "plekken",
       bookWorkshop: "Boek workshop",
       bookMany: function (q) { return "Boek " + q + " tickets"; },
@@ -80,6 +85,11 @@ document.addEventListener("DOMContentLoaded", function () {
       cancel: "Cancel",
       toPayment: "To payment &rarr;",
       working: "Working…",
+      discount: "Discount code",
+      discountApply: "Apply",
+      discountChecking: "Checking…",
+      discountApplied: function (p) { return "✓ " + p + "% discount applied"; },
+      discountInvalid: "This discount code is not (or no longer) valid.",
       spot: "spot", spots: "spots",
       bookWorkshop: "Book workshop",
       bookMany: function (q) { return "Book " + q + " tickets"; },
@@ -265,6 +275,13 @@ document.addEventListener("DOMContentLoaded", function () {
         '<label class="book-field">' + STR.diet + ' <span class="book-opt">' + STR.optional + '</span>' +
           '<textarea name="diet" rows="2"></textarea>' +
         '</label>' +
+        '<label class="book-field">' + STR.discount + ' <span class="book-opt">' + STR.optional + '</span>' +
+          '<span class="book-discount-row">' +
+            '<input type="text" name="discount" autocomplete="off" autocapitalize="characters" spellcheck="false" data-discount>' +
+            '<button type="button" class="btn btn-ghost book-discount-apply" data-discount-apply>' + STR.discountApply + '</button>' +
+          '</span>' +
+          '<span class="book-discount-msg" data-discount-msg aria-live="polite"></span>' +
+        '</label>' +
         '<p class="book-privacy">' + STR.privacy + '</p>' +
         '<div class="book-actions">' +
           '<button type="button" class="btn btn-ghost" data-cancel>' + STR.cancel + '</button>' +
@@ -273,6 +290,69 @@ document.addEventListener("DOMContentLoaded", function () {
       '</form>';
     document.body.appendChild(d);
     var form = d.querySelector("form");
+
+    // --- Prijsweergave (met eventuele korting) ---
+    function formatEuro(n) { return n.toFixed(2).replace(".", ","); }
+    function renderSummary() {
+      var q = d._qty || 1;
+      var base = 55 * q;
+      var pct = d._discountPercent || 0;
+      var total = (base * (100 - pct)) / 100;
+      var parts = "<strong>" + q + " " + (q === 1 ? STR.spot : STR.spots) + "</strong>" +
+        (d._when ? " &middot; " + d._when : "") + " &middot; ";
+      if (pct > 0) {
+        parts += '<span class="book-old-price">&euro;' + formatEuro(base) + '</span> ' +
+          '<strong>&euro;' + formatEuro(total) + '</strong> ' +
+          '<span class="book-save">&minus;' + pct + '%</span>';
+      } else {
+        parts += "&euro;" + formatEuro(total);
+      }
+      d.querySelector("[data-summary]").innerHTML = parts;
+    }
+    d._renderSummary = renderSummary;
+
+    // --- Kortingscode live controleren bij de Worker ---
+    var discountInput = d.querySelector("[data-discount]");
+    var discountMsg = d.querySelector("[data-discount-msg]");
+    var applyBtn = d.querySelector("[data-discount-apply]");
+    function setDiscountMsg(text, state) {
+      discountMsg.textContent = text;
+      discountMsg.className = "book-discount-msg" + (state ? " is-" + state : "");
+    }
+    function applyDiscount() {
+      var code = (discountInput.value || "").trim();
+      if (!code) { d._discountPercent = 0; setDiscountMsg("", ""); renderSummary(); return; }
+      applyBtn.disabled = true;
+      setDiscountMsg(STR.discountChecking, "");
+      fetch(window.GLS_WORKER_BASE + "/discount?code=" + encodeURIComponent(code))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (data && data.valid) {
+            d._discountPercent = data.percent || 0;
+            setDiscountMsg(STR.discountApplied(d._discountPercent), "ok");
+          } else {
+            d._discountPercent = 0;
+            setDiscountMsg(STR.discountInvalid, "bad");
+          }
+          renderSummary();
+        })
+        .catch(function () {
+          d._discountPercent = 0;
+          setDiscountMsg(STR.discountInvalid, "bad");
+          renderSummary();
+        })
+        .finally(function () { applyBtn.disabled = false; });
+    }
+    applyBtn.addEventListener("click", applyDiscount);
+    discountInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); applyDiscount(); }
+    });
+    // Past de klant de code nog aan? Dan de eerder toegepaste korting weer loslaten
+    // tot 'Toepassen' opnieuw is bevestigd (zodat de getoonde prijs nooit liegt).
+    discountInput.addEventListener("input", function () {
+      if (d._discountPercent) { d._discountPercent = 0; setDiscountMsg("", ""); renderSummary(); }
+    });
+
     function close() { if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
     d.querySelector(".book-dialog-close").addEventListener("click", close);
     d.querySelector("[data-cancel]").addEventListener("click", close);
@@ -294,11 +374,15 @@ document.addEventListener("DOMContentLoaded", function () {
     d.querySelector("[data-qty]").value = opts.qty;
     d.querySelector("[data-desc]").value = opts.desc;
     d.querySelector("[data-when]").value = opts.when || "";
-    var total = (55 * opts.qty).toFixed(2).replace(".", ",");
-    d.querySelector("[data-summary]").innerHTML =
-      "<strong>" + opts.qty + " " + (opts.qty === 1 ? STR.spot : STR.spots) + "</strong>" +
-      (opts.when ? " &middot; " + opts.when : "") +
-      " &middot; &euro;" + total;
+    // Korting-state en -veld resetten per keer dat het venster opent.
+    d._qty = opts.qty;
+    d._when = opts.when || "";
+    d._discountPercent = 0;
+    var discountField = d.querySelector("[data-discount]");
+    if (discountField) discountField.value = "";
+    var discountMsgEl = d.querySelector("[data-discount-msg]");
+    if (discountMsgEl) { discountMsgEl.textContent = ""; discountMsgEl.className = "book-discount-msg"; }
+    d._renderSummary();
     // Verzendknop weer activeren (voor het geval een vorige poging afbrak).
     var btn = d.querySelector("[data-submit]");
     btn.disabled = false;
