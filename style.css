@@ -806,6 +806,45 @@ body.page-workshops .page-ambient-bg { opacity: 0.35; }
   font-size: 0.85em;
 }
 
+/* ---------- Info-/landingspagina's (privé- & zakelijke groepen) ----------
+   Eén gecentreerde leeskolom met rustige, goed leesbare tekst. Koppen,
+   beeld en knoppen staan gecentreerd; lopende tekst blijft links uitgelijnd
+   zodat lange stukken prettig te lezen blijven. */
+.info-wrap { max-width: 640px; margin-left: auto; margin-right: auto; }
+.info-page .lede { color: var(--text-muted); }
+.info-page p,
+.info-page li { color: var(--text); font-size: 1.08rem; line-height: 1.85; }
+.info-page p { margin-top: 20px; }
+.info-page h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.25;
+  margin: 0 auto;
+  text-align: center;
+  max-width: 24ch;
+}
+.info-page h3 { margin-top: 34px; font-size: 1.2rem; }
+.info-page h3 + p { margin-top: 10px; }
+.info-page ul { margin: 18px 0 0; padding-left: 0; list-style: none; }
+.info-page ul li { position: relative; padding-left: 28px; margin-top: 14px; }
+.info-page ul li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  color: var(--accent);
+  font-size: 0.85em;
+}
+.info-figure {
+  margin: 0 auto 6px;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px -20px rgba(40, 30, 15, 0.35);
+}
+.info-figure img { width: 100%; display: block; }
+.info-figure.is-tall { max-width: 460px; }
+.info-cta { text-align: center; margin-top: 32px; }
+.info-page section.block h2 { margin-bottom: 4px; }
+
 .ticket-panel {
   position: sticky;
   top: 24px;
