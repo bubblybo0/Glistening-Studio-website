@@ -183,7 +183,7 @@ async function handleBook(request, env, url) {
     const counts = await readCounts(env);
     const sold = counts[eventId] || 0;
     if (sold >= CAPACITY) {
-      return htmlPage("Deze workshop is net vol", "Wat jammer — alle plekken voor deze datum zijn vergeven. Bekijk de agenda voor de eerstvolgende workshop.", true);
+      return htmlPage("Deze workshop is net vol", "Wat jammer, alle plekken voor deze datum zijn vergeven. Bekijk de agenda voor de eerstvolgende workshop.", true);
     }
     if (sold + qty > CAPACITY) {
       const left = CAPACITY - sold;
@@ -294,7 +294,7 @@ async function sendEmails(env, meta, qty, newCount) {
 
   // 1) Bevestiging aan de klant (jouw goedgekeurde tekst).
   if (email) {
-    const boeking = `${qty} plek${qty > 1 ? "ken" : ""} — ${when}`;
+    const boeking = `${qty} plek${qty > 1 ? "ken" : ""} · ${when}`;
     const klantHtml = `
       <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320;max-width:560px">
         <p>Beste ${escapeHtml(name || "deelnemer")},</p>
@@ -302,11 +302,11 @@ async function sendEmails(env, meta, qty, newCount) {
         <p style="background:#faf3e6;border-radius:10px;padding:12px 16px;margin:18px 0">
           <strong>Je boeking:</strong> ${escapeHtml(boeking)}
         </p>
-        <p>Tijdens de workshop maak je in een kleine, gezellige groep je eigen kristallen suncatcher. Alle materialen — kristallen, kralen en bedeltjes — liggen voor je klaar, dus je hoeft zelf niets mee te nemen. Geen ervaring nodig; er is alle ruimte om te spelen en te ontdekken. Reken op zo'n 2 tot 2,5 uur, met hapjes en drankjes erbij. En vooral heel veel creatieve gezelligheid.</p>
+        <p>Tijdens de workshop maak je in een kleine, gezellige groep je eigen kristallen suncatcher. Alle materialen (kristallen, kralen en bedeltjes) liggen voor je klaar, dus je hoeft zelf niets mee te nemen. Geen ervaring nodig; er is alle ruimte om te spelen en te ontdekken. Reken op zo'n 2 tot 2,5 uur, met hapjes en drankjes erbij. En vooral heel veel creatieve gezelligheid.</p>
         <p>📌 Een paar dagen van tevoren stuur ik je de exacte locatie en de laatste praktische details.</p>
         <p>💌 Zijn je dieetwensen veranderd? Laat het gerust weten.</p>
         <p>Ik kijk er naar uit om je bij de workshop te zien! 🌸</p>
-        <p>Warme groet,<br>Kiki — Glistening Studio</p>
+        <p>Warme groet,<br>Kiki · Glistening Studio</p>
       </div>`;
     await resendSend(env, {
       to: email,
@@ -320,18 +320,18 @@ async function sendEmails(env, meta, qty, newCount) {
   const kikiHtml = `
     <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320">
       <h2 style="margin:0 0 12px">🎫 Nieuwe boeking!</h2>
-      <p><strong>Naam:</strong> ${escapeHtml(name || "—")}<br>
-      <strong>E-mail:</strong> ${escapeHtml(email || "—")}<br>
+      <p><strong>Naam:</strong> ${escapeHtml(name || "-")}<br>
+      <strong>E-mail:</strong> ${escapeHtml(email || "-")}<br>
       <strong>Aantal:</strong> ${qty} plek${qty > 1 ? "ken" : ""}<br>
       <strong>Workshop:</strong> ${escapeHtml(when)}<br>
-      <strong>Dieetwensen:</strong> ${escapeHtml(diet || "—")}<br>
+      <strong>Dieetwensen:</strong> ${escapeHtml(diet || "-")}<br>
       ${discountCode ? `<strong>Kortingscode:</strong> ${escapeHtml(discountCode)} (−${discountPercent}%)<br>` : ""}
       <strong>Betaald:</strong> €${amount}<br>
       ${newCount != null ? `<strong>Plekken nu bezet:</strong> ${newCount} / ${CAPACITY}` : ""}</p>
     </div>`;
   await resendSend(env, {
     to: NOTIFY_EMAIL,
-    subject: `🎫 Nieuwe boeking: ${name || "onbekend"} — ${when}`,
+    subject: `🎫 Nieuwe boeking: ${name || "onbekend"} · ${when}`,
     html: kikiHtml,
     reply_to: email || NOTIFY_EMAIL,
   });
@@ -378,7 +378,7 @@ function escapeHtml(s) {
 function htmlPage(title, text, soldOut) {
   const body = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(title)} — Glistening Studio</title>
+    <title>${escapeHtml(title)} · Glistening Studio</title>
     <style>
       body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fbf7ef;color:#2a2320;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
       .card{max-width:440px;text-align:center;background:#fff;border-radius:16px;padding:32px 28px;box-shadow:0 10px 40px rgba(0,0,0,.08)}

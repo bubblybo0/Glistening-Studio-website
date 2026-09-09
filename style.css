@@ -625,6 +625,9 @@ section.block > .wrap > .lede {
 @media (prefers-reduced-motion: reduce) { .card, .card:hover { transition: none; transform: none; } }
 .card h3 { font-size: 1.15rem; font-weight: 600; }
 .card p { margin-top: 10px; color: var(--text-muted); font-size: 0.96rem; }
+a.card-link { display: block; text-decoration: none; color: inherit; }
+a.card-link h3 { transition: color 0.2s ease; }
+a.card-link:hover h3 { color: var(--accent); }
 
 /* ---------- Workshop card ---------- */
 .workshop-card {
@@ -650,39 +653,49 @@ section.block > .wrap > .lede {
 }
 .agenda-item {
   display: grid;
-  grid-template-columns: 90px 1fr auto;
+  grid-template-columns: 128px 1fr auto;
   align-items: center;
-  gap: 22px;
+  gap: 28px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px 24px;
+  padding: 24px 28px;
   text-align: left;
 }
-.agenda-date {
-  width: 90px;
+.agenda-thumb {
+  width: 128px;
   aspect-ratio: 1;
-  border-radius: 14px;
+  border-radius: 16px;
+  overflow: hidden;
   background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-family: "Work Sans", sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--accent-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.35;
 }
-.agenda-info h3 { font-size: 1.1rem; }
+.agenda-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.agenda-when {
+  display: inline-block;
+  font-family: "Work Sans", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  background: var(--accent-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.agenda-info h3 { font-size: 1.25rem; }
 .agenda-info h3 a { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease, color 0.2s ease; }
 .agenda-info h3 a:hover { color: var(--accent); border-bottom-color: var(--accent); }
-.agenda-info p { margin-top: 4px; color: var(--text-muted); font-size: 0.92rem; }
+.agenda-info p { margin-top: 6px; color: var(--text-muted); font-size: 0.95rem; }
 .agenda-item .btn { white-space: nowrap; }
 @media (max-width: 700px) {
-  .agenda-item { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+  .agenda-item { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 18px; }
+  .agenda-thumb { width: 100%; max-width: 280px; aspect-ratio: 16 / 10; }
 }
 
 /* Lege / niet-geladen agenda, uitverkocht en uitgeschakelde knop */
@@ -692,9 +705,9 @@ section.block > .wrap > .lede {
 .soldout-note { color: var(--text-muted); font-size: 0.98rem; }
 
 /* A softly moving hero-video background behind an entire page (used on the
-   agenda/workshops page). Sections with their own opaque background (like
-   .block.alt) simply paint over it; sections with no background let it
-   show through. */
+   agenda/workshops page). The nav and page content sit above it via their own
+   stacking context (see below) so photos and text stay fully solid; the video
+   only shows through the gaps around the content. */
 body.has-ambient-bg { background: transparent; }
 .page-ambient-bg {
   position: fixed;
@@ -707,44 +720,16 @@ body.has-ambient-bg { background: transparent; }
   filter: brightness(1.15) saturate(0.85);
   pointer-events: none;
 }
+/* Keep the page content above the fixed ambient video. Without this the
+   video (a positioned element) paints over the in-flow photos and text,
+   washing them out and making the images look semi-transparent. The nav
+   already sits above it via its own sticky z-index. */
+body.has-ambient-bg main { position: relative; z-index: 1; }
 body.page-workshops .page-ambient-bg { opacity: 0.35; }
 body.info-page .page-ambient-bg { opacity: 0.42; }
 @media (prefers-reduced-motion: reduce) {
   .page-ambient-bg { display: none; }
   body.has-ambient-bg { background: var(--bg); }
-}
-
-/* Small rotating product photos inside the agenda date badge — replaces a
-   plain colour badge with a soft crossfade between a few suncatcher shots,
-   with the date shown as a label over the bottom edge. */
-.agenda-date {
-  position: relative;
-  overflow: hidden;
-  padding: 0;
-}
-.agenda-date .agenda-photo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.agenda-date .agenda-date-label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  background: rgba(36, 31, 26, 0.72);
-  color: #fff;
-  font-family: "Work Sans", sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 3px 0 4px;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .note-box {
