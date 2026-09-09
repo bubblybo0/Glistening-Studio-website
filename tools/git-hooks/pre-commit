@@ -1,0 +1,18 @@
+#!/bin/sh
+# Blokkeert een commit zodra er een em-dash (—) in een gewijzigd .html-bestand staat.
+# Overslaan kan met:  git commit --no-verify
+#
+# Deze hook zit in de repo (tools/git-hooks). Git gebruikt 'm via de instelling
+# core.hooksPath. Na een verse clone zet je dat één keer aan met:
+#   git config core.hooksPath tools/git-hooks
+
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep '\.html$')
+[ -z "$staged" ] && exit 0
+
+# shellcheck disable=SC2086
+node tools/check-em-dashes.mjs $staged || {
+  echo ""
+  echo "Commit tegengehouden: haal de em-dashes weg (of gebruik: git commit --no-verify)."
+  exit 1
+}
+exit 0
