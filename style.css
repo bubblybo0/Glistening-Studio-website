@@ -698,6 +698,107 @@ a.card-link:hover h3 { color: var(--accent); }
   .agenda-thumb { width: 100%; max-width: 280px; aspect-ratio: 16 / 10; }
 }
 
+/* ---------- Maandkalender (huidige + volgende maand) ---------- */
+.gls-cal-months {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.gls-cal-month {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 18px 22px;
+}
+.gls-cal-title {
+  font-family: "Work Sans", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: center;
+  margin-bottom: 14px;
+  text-transform: capitalize;
+}
+.gls-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.gls-cal-wd {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+}
+.gls-cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  color: var(--text);
+}
+.gls-cal-cell.is-empty { visibility: hidden; }
+.gls-cal-cell.is-today { outline: 2px solid var(--accent); outline-offset: -2px; font-weight: 700; }
+a.gls-cal-cell.has-workshop {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+a.gls-cal-cell.has-workshop:hover,
+a.gls-cal-cell.has-workshop:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(201, 134, 47, 0.4);
+}
+a.gls-cal-cell.has-workshop.is-today { outline-color: #fff; }
+.gls-cal-cell.had-workshop { background: var(--accent-soft); color: var(--text-muted); }
+.gls-cal-badge {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: #fff;
+  font-family: "Work Sans", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+.gls-cal-legend {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.gls-cal-legend .sw {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: -2px;
+  margin-right: 7px;
+}
+.gls-cal-legend .sw-workshop { background: var(--accent); }
+.gls-cal-legend .sw-past { background: var(--accent-soft); border: 1px solid var(--border); }
+/* Aangeklikte agendakaart even laten oplichten na een sprong vanuit de kalender */
+.agenda-item:target { box-shadow: 0 0 0 2px var(--accent); scroll-margin-top: 90px; }
+@media (max-width: 640px) {
+  .gls-cal-months { grid-template-columns: 1fr; }
+}
+
 /* Lege / niet-geladen agenda, uitverkocht en uitgeschakelde knop */
 .agenda-empty { text-align: center; padding: 24px 0; color: var(--text-muted); }
 .agenda-item.is-soldout { opacity: 0.7; }

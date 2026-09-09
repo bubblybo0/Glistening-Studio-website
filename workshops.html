@@ -389,6 +389,14 @@
     </div>
   </section>
 
+  <section class="block alt" id="kalender">
+    <div class="wrap">
+      <h2>Wanneer kun je komen?</h2>
+      <p class="lede">De dagen met een workshop staan in kleur. Klik op een gekleurde dag om die workshop te boeken.</p>
+      <div class="gls-calendar" id="workshopCalendar"></div>
+    </div>
+  </section>
+
   <section class="block" id="agenda">
     <div class="wrap">
       <div class="agenda-list">
@@ -465,6 +473,8 @@
       .then(function (results) {
         var events = results[0];
         var avail = results[1];
+        // Maandkalender tekenen uit dezelfde bron (huidige + volgende maand).
+        window.glsRenderCalendar(document.getElementById("workshopCalendar"), events, { lang: "nl" });
         var upcoming = events
           .filter(function (ev) { return window.glsIsUpcoming(ev.start); })
           .sort(function (a, b) { return new Date(a.start) - new Date(b.start); });
@@ -483,7 +493,7 @@
           var cta = soldOut
             ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Uitverkocht</span>'
             : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Meer info</a>';
-          return '<div class="agenda-item' + (soldOut ? ' is-soldout' : '') + '">' +
+          return '<div class="agenda-item' + (soldOut ? ' is-soldout' : '') + '" id="agenda-' + ev.id + '">' +
             '<div class="agenda-thumb">' +
               '<img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">' +
             '</div>' +

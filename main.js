@@ -42,6 +42,109 @@
       })
       .catch(function () { return { capacity: 15, sold: {} }; });
   };
+
+  // --- Maandkalender ---------------------------------------------------------
+  // Tekent een "echte" agenda: de huidige maand + de volgende maand als een
+  // klassiek kalenderraster (maandag-eerst), waarin de dagen met een workshop
+  // oplichten. Klikken op zo'n dag springt naar de bijbehorende kaart in de
+  // agendalijst (id "agenda-<eventid>"). Werkt op zowel de NL- als de
+  // /en/-pagina; taal en steden-vertaling gaan via opts.
+  window.glsRenderCalendar = function (container, events, opts) {
+    if (!container) return;
+    opts = opts || {};
+    var locale = opts.lang === "en" ? "en-US" : "nl-NL";
+    var isEn = opts.lang === "en";
+    var cityMap = opts.cityMap || {};
+    var MONTHS_TO_SHOW = 2;
+
+    // Datumsleutel "YYYY-MM-DD" in de tijdzone Amsterdam, zodat een workshop op
+    // de juiste dag in het raster valt (ongeacht de tijdzone van de bezoeker).
+    function keyTZ(dateOrISO) {
+      return new Intl.DateTimeFormat("en-CA", {
+        year: "numeric", month: "2-digit", day: "2-digit", timeZone: TZ
+      }).format(new Date(dateOrISO));
+    }
+
+    // Workshops groeperen per dag, op tijd gesorteerd.
+    var byDay = {};
+    (events || []).forEach(function (ev) {
+      var k = keyTZ(ev.start);
+      (byDay[k] = byDay[k] || []).push(ev);
+    });
+    Object.keys(byDay).forEach(function (k) {
+      byDay[k].sort(function (a, b) { return new Date(a.start) - new Date(b.start); });
+    });
+
+    var now = new Date();
+    var todayKey = keyTZ(now);
+    var weekdays = isEn
+      ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      : ["ma", "di", "wo", "do", "vr", "za", "zo"];
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+    var html = '<div class="gls-cal-months">';
+    for (var m = 0; m < MONTHS_TO_SHOW; m++) {
+      var d = new Date(now.getFullYear(), now.getMonth() + m, 1);
+      var year = d.getFullYear();
+      var month = d.getMonth(); // 0-gebaseerd
+      var monthName = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(d);
+      var firstWd = (new Date(year, month, 1).getDay() + 6) % 7; // maandag = 0
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      html += '<div class="gls-cal-month">';
+      html += '<div class="gls-cal-title">' + monthName + '</div>';
+      html += '<div class="gls-cal-grid" role="grid">';
+      weekdays.forEach(function (w) {
+        html += '<div class="gls-cal-wd" role="columnheader">' + w + '</div>';
+      });
+      for (var i = 0; i < firstWd; i++) html += '<div class="gls-cal-cell is-empty" aria-hidden="true"></div>';
+
+      for (var day = 1; day <= daysInMonth; day++) {
+        var key = year + "-" + pad(month + 1) + "-" + pad(day);
+        var cls = "gls-cal-cell";
+        if (key === todayKey) cls += " is-today";
+        var evs = byDay[key];
+        if (!evs || !evs.length) {
+          html += '<div class="' + cls + '" role="gridcell">' + day + '</div>';
+          continue;
+        }
+        var upcoming = evs.filter(function (ev) { return window.glsIsUpcoming(ev.start); });
+        // Leesbare omschrijving voor tooltip + schermlezer.
+        var descParts = evs.map(function (ev) {
+          var L = window.glsEventLabels(ev.start);
+          var city = cityMap[ev.city] || ev.city;
+          return isEn
+            ? ("workshop " + city + " at " + L.time)
+            : ("workshop " + city + " om " + L.time);
+        });
+        var dayName = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(key + "T12:00:00"));
+        var label = dayName + ": " + descParts.join(", ");
+        var badge = evs.length > 1 ? '<span class="gls-cal-badge">' + evs.length + '</span>' : "";
+        if (upcoming.length) {
+          html += '<a class="' + cls + ' has-workshop" role="gridcell" href="#agenda-' +
+            encodeURIComponent(upcoming[0].id) + '" title="' + label + '" aria-label="' + label + '">' +
+            day + badge + '</a>';
+        } else {
+          // Workshop is al geweest: markeer subtiel, niet klikbaar.
+          html += '<div class="' + cls + ' had-workshop" role="gridcell" title="' + label + '" aria-label="' + label + '">' +
+            day + badge + '</div>';
+        }
+      }
+      html += '</div></div>';
+    }
+    html += '</div>'; // .gls-cal-months
+
+    // Legenda onder de maanden.
+    var legend = isEn
+      ? '<span><span class="sw sw-workshop"></span>workshop day (click to book)</span>' +
+        '<span><span class="sw sw-past"></span>past workshop</span>'
+      : '<span><span class="sw sw-workshop"></span>workshopdag (klik om te boeken)</span>' +
+        '<span><span class="sw sw-past"></span>afgelopen workshop</span>';
+    html += '<div class="gls-cal-legend">' + legend + '</div>';
+
+    container.innerHTML = html;
+  };
 })();
 
 document.addEventListener("DOMContentLoaded", function () {
