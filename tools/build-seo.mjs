@@ -79,7 +79,7 @@ html = html.replace(
 writeFileSync(workshopsPath, html);
 
 // --- 2. sitemap.xml --------------------------------------------------------
-const pages = ["/", "/workshops.html", "/over-ons.html", "/contact.html"];
+const pages = ["/", "/workshops.html", "/privegroepen.html", "/zakelijke-groepen.html", "/over-ons.html", "/contact.html"];
 const today = new Date().toISOString().slice(0, 10);
 const sitemap =
   `<?xml version="1.0" encoding="UTF-8"?>\n` +
