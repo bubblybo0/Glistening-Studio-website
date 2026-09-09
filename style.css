@@ -796,7 +796,12 @@ a.gls-cal-cell.has-workshop.is-today { outline-color: #fff; }
 /* Aangeklikte agendakaart even laten oplichten na een sprong vanuit de kalender */
 .agenda-item:target { box-shadow: 0 0 0 2px var(--accent); scroll-margin-top: 90px; }
 @media (max-width: 640px) {
-  .gls-cal-months { grid-template-columns: 1fr; }
+  .gls-cal-months { grid-template-columns: 1fr; gap: 18px; }
+  /* Smallere kaartrand + iets grotere cijfers = ruimere, beter tikbare dagvakjes */
+  .gls-cal-month { padding: 16px 10px 20px; }
+  .gls-cal-grid { gap: 5px; }
+  .gls-cal-cell { font-size: 1.08rem; border-radius: 12px; }
+  .gls-cal-badge { top: 4px; right: 5px; min-width: 17px; height: 17px; line-height: 17px; font-size: 0.66rem; }
 }
 
 /* Lege / niet-geladen agenda, uitverkocht en uitgeschakelde knop */
