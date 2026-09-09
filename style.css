@@ -842,6 +842,7 @@ body.page-workshops .page-ambient-bg { opacity: 0.35; }
 }
 .info-figure img { width: 100%; display: block; }
 .info-figure.is-tall { max-width: 460px; }
+.info-figure.is-top { max-width: 360px; }
 .info-cta { text-align: center; margin-top: 32px; }
 .info-page section.block h2 { margin-bottom: 4px; }
 
