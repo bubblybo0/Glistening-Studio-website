@@ -708,6 +708,7 @@ body.has-ambient-bg { background: transparent; }
   pointer-events: none;
 }
 body.page-workshops .page-ambient-bg { opacity: 0.35; }
+body.info-page .page-ambient-bg { opacity: 0.42; }
 @media (prefers-reduced-motion: reduce) {
   .page-ambient-bg { display: none; }
   body.has-ambient-bg { background: var(--bg); }
