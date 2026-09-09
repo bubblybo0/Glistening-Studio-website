@@ -555,7 +555,7 @@ body.nav-open { overflow: hidden; }
 }
 .ambient-section .wrap { position: relative; z-index: 1; }
 .wrap > .photo-band:first-child { margin-top: 0; }
-.ambient-bg.ambient-bg-soft { opacity: 0.4; }
+.ambient-bg.ambient-bg-soft { opacity: 0.12; }
 
 /* Full-bleed photo band between story rows */
 .photo-band {

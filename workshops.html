@@ -391,8 +391,8 @@
 
   <section class="block alt" id="kalender">
     <div class="wrap">
-      <h2>Wanneer kun je komen?</h2>
-      <p class="lede">De dagen met een workshop staan in kleur. Klik op een gekleurde dag om die workshop te boeken.</p>
+      <h2>Kies jouw dag</h2>
+      <p class="lede">Zie je een gekleurde dag staan? Dan is daar plek voor jou. Klik erop om je plekje te reserveren. Tot snel!</p>
       <div class="gls-calendar" id="workshopCalendar"></div>
     </div>
   </section>
@@ -488,19 +488,25 @@
         container.innerHTML = upcoming.map(function (ev) {
           var L = window.glsEventLabels(ev.start);
           var price = ev.price != null ? ev.price : 55;
+          var capacity = avail.capacity || 15;
           var sold = (avail.sold && avail.sold[ev.id]) || 0;
-          var soldOut = (ev.status && ev.status !== "available") || sold >= (avail.capacity || 15);
+          var remaining = Math.max(0, capacity - sold);
+          var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
+          // Eerlijke schaarste: alleen tonen als het echt bijna vol is.
+          var scarcity = (!soldOut && remaining <= 5)
+            ? ' &middot; <strong>nog ' + remaining + (remaining === 1 ? ' plek' : ' plekken') + ' vrij</strong>'
+            : '';
           var cta = soldOut
-            ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Uitverkocht</span>'
-            : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Meer info</a>';
+            ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Vol</span>'
+            : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Reserveer je plek</a>';
           return '<div class="agenda-item' + (soldOut ? ' is-soldout' : '') + '" id="agenda-' + ev.id + '">' +
             '<div class="agenda-thumb">' +
               '<img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">' +
             '</div>' +
             '<div class="agenda-info">' +
               '<span class="agenda-when">' + L.dateLabel + ' &middot; ' + L.time + '</span>' +
-              '<h3>Maak je eigen suncatcher</h3>' +
-              '<p>Los boeken &middot; ' + ev.city + ' &middot; &euro;' + price + ' p.p.' + (soldOut ? ' &middot; <strong>uitverkocht</strong>' : '') + '</p>' +
+              '<h3>Maak je eigen suncatcher vol licht</h3>' +
+              '<p>Los boeken &middot; ' + ev.city + ' &middot; &euro;' + price + ' p.p.' + (soldOut ? ' &middot; <strong>vol</strong>' : scarcity) + '</p>' +
             '</div>' +
             cta +
           '</div>';

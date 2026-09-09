@@ -12,13 +12,15 @@
     var dutchDate = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "long", timeZone: TZ }).format(d);
     var englishDate = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: TZ }).format(d);
     var dateLabel = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: TZ }).format(d).replace(/\.$/, "");
+    var fullDate = new Intl.DateTimeFormat("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: TZ }).format(d);
+    var fullDateEn = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: TZ }).format(d);
     var time = new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: TZ }).format(d);
     var hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: TZ }).format(d));
     var timeOfDay, timeOfDayEn;
     if (hour < 12) { timeOfDay = "ochtend"; timeOfDayEn = "morning"; }
     else if (hour < 18) { timeOfDay = "middag"; timeOfDayEn = "afternoon"; }
     else { timeOfDay = "avond"; timeOfDayEn = "evening"; }
-    return { dateLabel: dateLabel, dutchDate: dutchDate, englishDate: englishDate, time: time, timeOfDay: timeOfDay, timeOfDayEn: timeOfDayEn };
+    return { dateLabel: dateLabel, fullDate: fullDate, fullDateEn: fullDateEn, dutchDate: dutchDate, englishDate: englishDate, time: time, timeOfDay: timeOfDay, timeOfDayEn: timeOfDayEn };
   };
   // Is de workshop nog niet voorbij? (kleine marge zodat een workshop pas de
   // dag erna uit de agenda verdwijnt, niet al zodra hij begint.)
@@ -104,14 +106,25 @@
         var key = year + "-" + pad(month + 1) + "-" + pad(day);
         var cls = "gls-cal-cell";
         if (key === todayKey) cls += " is-today";
-        var evs = byDay[key];
-        if (!evs || !evs.length) {
-          html += '<div class="' + cls + '" role="gridcell">' + day + '</div>';
+        // Alleen komende workshops tonen; afgelopen dagen blijven een gewone dag.
+        var upcoming = (byDay[key] || []).filter(function (ev) { return window.glsIsUpcoming(ev.start); });
+        if (!upcoming.length) {
+          // Vrije dag vanaf vandaag: aanklikbaar om zelf een workshop aan te vragen.
+          if (key >= todayKey) {
+            var freeDayName = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(new Date(key + "T12:00:00"));
+            var reqLabel = isEn
+              ? ("Request a workshop on " + freeDayName)
+              : ("Vraag een workshop aan op " + freeDayName);
+            html += '<button type="button" class="' + cls + ' can-request" data-request-date="' + key +
+              '" data-request-text="' + freeDayName + '" title="' + reqLabel + '" aria-label="' + reqLabel + '">' +
+              day + '</button>';
+          } else {
+            html += '<div class="' + cls + '" role="gridcell">' + day + '</div>';
+          }
           continue;
         }
-        var upcoming = evs.filter(function (ev) { return window.glsIsUpcoming(ev.start); });
         // Leesbare omschrijving voor tooltip + schermlezer.
-        var descParts = evs.map(function (ev) {
+        var descParts = upcoming.map(function (ev) {
           var L = window.glsEventLabels(ev.start);
           var city = cityMap[ev.city] || ev.city;
           return isEn
@@ -120,16 +133,10 @@
         });
         var dayName = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(key + "T12:00:00"));
         var label = dayName + ": " + descParts.join(", ");
-        var badge = evs.length > 1 ? '<span class="gls-cal-badge">' + evs.length + '</span>' : "";
-        if (upcoming.length) {
-          html += '<a class="' + cls + ' has-workshop" role="gridcell" href="#agenda-' +
-            encodeURIComponent(upcoming[0].id) + '" title="' + label + '" aria-label="' + label + '">' +
-            day + badge + '</a>';
-        } else {
-          // Workshop is al geweest: markeer subtiel, niet klikbaar.
-          html += '<div class="' + cls + ' had-workshop" role="gridcell" title="' + label + '" aria-label="' + label + '">' +
-            day + badge + '</div>';
-        }
+        var badge = upcoming.length > 1 ? '<span class="gls-cal-badge">' + upcoming.length + '</span>' : "";
+        html += '<a class="' + cls + ' has-workshop" role="gridcell" href="#agenda-' +
+          encodeURIComponent(upcoming[0].id) + '" title="' + label + '" aria-label="' + label + '">' +
+          day + badge + '</a>';
       }
       html += '</div></div>';
     }
@@ -138,9 +145,9 @@
     // Legenda onder de maanden.
     var legend = isEn
       ? '<span><span class="sw sw-workshop"></span>workshop day (click to book)</span>' +
-        '<span><span class="sw sw-past"></span>past workshop</span>'
-      : '<span><span class="sw sw-workshop"></span>workshopdag (klik om te boeken)</span>' +
-        '<span><span class="sw sw-past"></span>afgelopen workshop</span>';
+        '<span><span class="sw sw-open"></span>free day (click to request your own)</span>'
+      : '<span><span class="sw sw-workshop"></span>workshopdag (klik om je plek te reserveren)</span>' +
+        '<span><span class="sw sw-open"></span>vrije dag (klik om er zelf één aan te vragen)</span>';
     html += '<div class="gls-cal-legend">' + legend + '</div>';
 
     container.innerHTML = html;
@@ -530,6 +537,167 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   initTicketPickers();
   document.addEventListener("eventDataReady", initTicketPickers);
+
+  // --- Workshop aanvragen op een vrije kalenderdag -------------------------
+  // Klik je in de kalender op een vrije (niet-gekleurde) dag, dan open je een
+  // klein venster om interesse door te geven. Dat stuurt een seintje naar Kiki
+  // via de Worker (POST /request). Het is nadrukkelijk nog geen boeking.
+  var RSTR = {
+    nl: {
+      title: "Een workshop aanvragen",
+      lead: function (d) { return "Je geeft interesse door voor een workshop op <strong>" + d + "</strong>."; },
+      name: "Je naam",
+      email: "Je e-mailadres",
+      message: "Waar denk je aan?",
+      messageHint: "Bijvoorbeeld: met hoeveel mensen, welke gelegenheid, of een vraag.",
+      optional: "(optioneel)",
+      note: "Let op: dit is nog geen boeking. Je stuurt me een aanvraag en daarna neem ik contact met je op om samen de details te bekijken.",
+      cancel: "Annuleren",
+      submit: "Aanvraag versturen",
+      working: "Versturen…",
+      okTitle: "Gelukt, je aanvraag is onderweg! 🌸",
+      okBody: "Ik neem snel contact met je op om samen te kijken wat er mogelijk is. Dit is nog geen bevestigde boeking, dat regelen we samen.",
+      close: "Sluiten",
+      error: "Het versturen lukte even niet. Probeer het zo nog eens, of mail info@glisteningstudio.com."
+    },
+    en: {
+      title: "Request a workshop",
+      lead: function (d) { return "You are letting me know you are interested in a workshop on <strong>" + d + "</strong>."; },
+      name: "Your name",
+      email: "Your email address",
+      message: "What do you have in mind?",
+      messageHint: "For example: how many people, the occasion, or a question.",
+      optional: "(optional)",
+      note: "Please note: this is not a booking yet. You are sending me a request, and I will get in touch to go through the details together.",
+      cancel: "Cancel",
+      submit: "Send request",
+      working: "Sending…",
+      okTitle: "Done, your request is on its way! 🌸",
+      okBody: "I will get in touch soon to see what is possible. This is not a confirmed booking yet, we will arrange that together.",
+      close: "Close",
+      error: "Sending did not work just now. Please try again, or email info@glisteningstudio.com."
+    }
+  }[LANG];
+
+  var requestDialog = null;
+  function ensureRequestDialog() {
+    if (requestDialog) return requestDialog;
+    var d = document.createElement("dialog");
+    d.className = "book-dialog request-dialog";
+    d.innerHTML =
+      '<form class="book-form request-form" novalidate>' +
+        '<button type="button" class="book-dialog-close" aria-label="' + RSTR.close + '">&times;</button>' +
+        '<h2>' + RSTR.title + '</h2>' +
+        '<p class="book-summary" data-req-lead></p>' +
+        '<label class="book-field">' + RSTR.name +
+          '<input type="text" name="name" autocomplete="name" required>' +
+        '</label>' +
+        '<label class="book-field">' + RSTR.email +
+          '<input type="email" name="email" autocomplete="email" required>' +
+        '</label>' +
+        '<label class="book-field">' + RSTR.message + ' <span class="book-opt">' + RSTR.optional + '</span>' +
+          '<textarea name="message" rows="3" placeholder="' + RSTR.messageHint + '"></textarea>' +
+        '</label>' +
+        '<p class="book-privacy request-note">' + RSTR.note + '</p>' +
+        '<p class="request-error" data-req-error aria-live="polite" hidden></p>' +
+        '<div class="book-actions">' +
+          '<button type="button" class="btn btn-ghost" data-req-cancel>' + RSTR.cancel + '</button>' +
+          '<button type="submit" class="btn btn-primary" data-req-submit>' + RSTR.submit + '</button>' +
+        '</div>' +
+      '</form>' +
+      '<div class="book-form request-done" hidden>' +
+        '<button type="button" class="book-dialog-close" aria-label="' + RSTR.close + '">&times;</button>' +
+        '<h2>' + RSTR.okTitle + '</h2>' +
+        '<p class="request-done-body">' + RSTR.okBody + '</p>' +
+        '<div class="book-actions">' +
+          '<button type="button" class="btn btn-primary" data-req-close>' + RSTR.close + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(d);
+
+    var form = d.querySelector(".request-form");
+    var doneEl = d.querySelector(".request-done");
+    var errEl = d.querySelector("[data-req-error]");
+    var submitBtn = d.querySelector("[data-req-submit]");
+
+    function close() { if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
+    d.querySelectorAll(".book-dialog-close").forEach(function (b) { b.addEventListener("click", close); });
+    d.querySelector("[data-req-cancel]").addEventListener("click", close);
+    d.querySelector("[data-req-close]").addEventListener("click", close);
+    d.addEventListener("click", function (e) { if (e.target === d) close(); });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.querySelector('input[name="name"]').value.trim();
+      var email = form.querySelector('input[name="email"]').value.trim();
+      var message = form.querySelector('textarea[name="message"]').value.trim();
+      if (!name || !email) { form.reportValidity && form.reportValidity(); return; }
+      errEl.hidden = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = RSTR.working;
+      fetch(window.GLS_WORKER_BASE + "/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: d._reqDate || "",
+          dateText: d._reqText || d._reqDate || "",
+          name: name, email: email, message: message, lang: LANG
+        })
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data || !data.ok) throw new Error("request failed");
+          form.hidden = true;
+          doneEl.hidden = false;
+          var closeBtn = d.querySelector("[data-req-close]");
+          if (closeBtn) closeBtn.focus();
+        })
+        .catch(function () {
+          errEl.textContent = RSTR.error;
+          errEl.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = RSTR.submit;
+        });
+    });
+
+    requestDialog = d;
+    return d;
+  }
+
+  function openRequestDialog(dateKey, dateText) {
+    var d = ensureRequestDialog();
+    d._reqDate = dateKey || "";
+    d._reqText = dateText || dateKey || "";
+    var form = d.querySelector(".request-form");
+    var doneEl = d.querySelector(".request-done");
+    form.hidden = false;
+    doneEl.hidden = true;
+    form.reset();
+    d.querySelector("[data-req-lead]").innerHTML = RSTR.lead(d._reqText);
+    var errEl = d.querySelector("[data-req-error]");
+    errEl.hidden = true; errEl.textContent = "";
+    var submitBtn = d.querySelector("[data-req-submit]");
+    submitBtn.disabled = false;
+    submitBtn.textContent = RSTR.submit;
+    if (typeof d.showModal === "function") d.showModal();
+    else d.setAttribute("open", "");
+    var nameInput = form.querySelector('input[name="name"]');
+    if (nameInput) nameInput.focus();
+  }
+
+  // Klik op een vrije kalenderdag (werkt ook na opnieuw tekenen van de kalender).
+  document.addEventListener("click", function (e) {
+    var cell = e.target.closest ? e.target.closest("[data-request-date]") : null;
+    if (!cell) return;
+    e.preventDefault();
+    openRequestDialog(cell.getAttribute("data-request-date"), cell.getAttribute("data-request-text"));
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && requestDialog && requestDialog.open) {
+      if (typeof requestDialog.close === "function") requestDialog.close();
+      else requestDialog.removeAttribute("open");
+    }
+  });
 
   // Slow-motion voor specifieke sfeer-achtergrondvideo's (niet bij verminderde beweging)
   if (!reduceMotion) {

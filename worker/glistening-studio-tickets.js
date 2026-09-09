@@ -67,6 +67,9 @@ export default {
     if (url.pathname === "/discount") {
       return handleDiscount(url);
     }
+    if (url.pathname === "/request" && request.method === "POST") {
+      return handleRequest(request, env);
+    }
     if (url.pathname === "/webhook" && request.method === "POST") {
       return handleWebhook(request, env, url);
     }
@@ -137,6 +140,85 @@ async function handleAvailability(env) {
     ...CORS,
     "Cache-Control": "public, max-age=20",
   });
+}
+
+// --- POST /request: interesse voor een workshop op een vrije dag ------------
+// De bezoeker klikt in de kalender op een lege dag en vult een kort formulier
+// in. Dit is nadrukkelijk NOG GEEN boeking: we starten alleen het contact.
+// We sturen Kiki een seintje en de aanvrager een korte bevestiging.
+async function handleRequest(request, env) {
+  let data = {};
+  try {
+    const ct = request.headers.get("content-type") || "";
+    if (ct.indexOf("application/json") !== -1) {
+      data = await request.json();
+    } else {
+      const form = await request.formData();
+      form.forEach((v, k) => { data[k] = v; });
+    }
+  } catch (e) {
+    return json({ ok: false, error: "bad-request" }, 400, CORS);
+  }
+
+  const name = (data.name || "").toString().trim();
+  const email = (data.email || "").toString().trim();
+  const message = (data.message || "").toString().trim();
+  const dateText = (data.dateText || data.date || "").toString().trim();
+  const lang = (data.lang || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
+
+  if (!name || !email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return json({ ok: false, error: "missing-fields" }, 400, CORS);
+  }
+
+  const when = dateText || (lang === "en" ? "a date to be discussed" : "een nader te bepalen dag");
+
+  // 1) Seintje aan Kiki.
+  const kikiHtml = `
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320">
+      <h2 style="margin:0 0 12px">🌱 Nieuwe workshop-aanvraag</h2>
+      <p>Iemand heeft interesse om op deze dag een workshop te boeken. De boeking is <strong>nog niet voltooid</strong>; het contact is hiermee net gestart.</p>
+      <p style="background:#faf3e6;border-radius:10px;padding:12px 16px;margin:18px 0">
+        <strong>Gewenste dag:</strong> ${escapeHtml(when)}<br>
+        <strong>Naam:</strong> ${escapeHtml(name)}<br>
+        <strong>E-mail:</strong> ${escapeHtml(email)}<br>
+        <strong>Bericht:</strong> ${escapeHtml(message || "-")}
+      </p>
+      <p>Reageer gerust rechtstreeks op deze mail om contact op te nemen.</p>
+    </div>`;
+  await resendSend(env, {
+    to: NOTIFY_EMAIL,
+    subject: `🌱 Workshop-aanvraag: ${name} · ${when}`,
+    html: kikiHtml,
+    reply_to: email,
+  });
+
+  // 2) Korte bevestiging aan de aanvrager (duidelijk: nog geen boeking).
+  const okHtml = lang === "en"
+    ? `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320;max-width:560px">
+        <p>Hi ${escapeHtml(name)},</p>
+        <p>Thank you for your interest in a workshop on <strong>${escapeHtml(when)}</strong>! 🌸</p>
+        <p>This is not a confirmed booking yet: I have received your request and will get in touch soon to see what is possible and arrange the details together.</p>
+        <p>Warm regards,<br>Kiki · Glistening Studio</p>
+      </div>`
+    : `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320;max-width:560px">
+        <p>Hoi ${escapeHtml(name)},</p>
+        <p>Wat leuk dat je interesse hebt in een workshop op <strong>${escapeHtml(when)}</strong>! 🌸</p>
+        <p>Dit is nog geen bevestigde boeking: ik heb je aanvraag ontvangen en neem snel contact met je op om te kijken wat er mogelijk is en de details samen door te nemen.</p>
+        <p>Warme groet,<br>Kiki · Glistening Studio</p>
+      </div>`;
+  try {
+    await resendSend(env, {
+      to: email,
+      subject: lang === "en" ? "🌱 Your workshop request" : "🌱 Je workshop-aanvraag",
+      html: okHtml,
+      reply_to: NOTIFY_EMAIL,
+    });
+  } catch (e) {
+    // De aanvraag is al bij Kiki; een mislukte bevestiging mag de bezoeker niet stoppen.
+    console.log("Bevestigingsmail-fout:", e && e.message);
+  }
+
+  return json({ ok: true }, 200, CORS);
 }
 
 // --- /book: betaling starten ------------------------------------------------
