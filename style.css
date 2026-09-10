@@ -591,6 +591,9 @@ body.nav-open { overflow: hidden; }
 /* ---------- Sections ---------- */
 section.block { padding: clamp(40px, 6vw, 76px) 0; }
 section.block.alt { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+/* De "Kies jouw dag"-agenda krijgt een zachte beige creme-kleur in plaats van
+   wit, zodat hij bij de rest van de site past. */
+section.block.alt#kalender { background: var(--surface-2); }
 
 /* Soft color washes — gentle rainbow drift as you scroll down the page */
 .wash-1 { background: var(--wash-1); }
@@ -911,7 +914,7 @@ body.has-ambient-bg { background: transparent; }
    washing them out and making the images look semi-transparent. The nav
    already sits above it via its own sticky z-index. */
 body.has-ambient-bg main { position: relative; z-index: 1; }
-body.page-workshops .page-ambient-bg { opacity: 0.35; }
+body.page-workshops .page-ambient-bg { opacity: 0.65; }
 body.info-page .page-ambient-bg { opacity: 0.42; }
 @media (prefers-reduced-motion: reduce) {
   .page-ambient-bg { display: none; }
