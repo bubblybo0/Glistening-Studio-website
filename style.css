@@ -876,12 +876,12 @@ button.gls-cal-cell.can-request:focus-visible {
 /* Sfeerfoto's onder de privé- en zakelijke opties in de workshoplijst */
 .agenda-group-photos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin: 2px 0;
 }
-.agenda-group-photos .story-photo { aspect-ratio: 16 / 10; border-radius: var(--radius); }
-@media (max-width: 520px) { .agenda-group-photos { grid-template-columns: 1fr; } }
+.agenda-group-photos .story-photo { aspect-ratio: 9 / 16; border-radius: var(--radius); }
+@media (max-width: 640px) { .agenda-group-photos { grid-template-columns: 1fr 1fr; } }
 
 /* Lege / niet-geladen agenda, uitverkocht en uitgeschakelde knop */
 .agenda-empty { text-align: center; padding: 24px 0; color: var(--text-muted); }

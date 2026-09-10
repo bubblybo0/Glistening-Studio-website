@@ -399,6 +399,8 @@
           </div>
         </div>
         <div class="agenda-group-photos">
+          <div class="story-photo"><img src="workshop-tafel.jpg" alt="Een groep maakt samen kristallen suncatchers aan de gezellige werktafel" loading="lazy"></div>
+          <div class="story-photo"><img src="handen-werk.jpg" alt="Handen maken met een tang een eigen kristallen suncatcher tijdens de workshop" loading="lazy"></div>
           <div class="story-photo"><img src="bedeltjes.jpg" alt="Bakje vol zilverkleurige metalen bedeltjes om uit te kiezen tijdens de workshop" loading="lazy"></div>
           <div class="story-photo"><img src="atelier.jpg" alt="Sfeervol atelier met een grote werktafel en een kleurrijke wand vol garen" loading="lazy"></div>
         </div>
@@ -466,6 +468,8 @@
         container.innerHTML = upcoming.map(function (ev) {
           var L = window.glsEventLabels(ev.start);
           var price = ev.price != null ? ev.price : 55;
+          // Volledige locatie tonen bij losse workshops (naam, straat, stad).
+          var place = [ev.venue, ev.street, ev.city].filter(Boolean).join(", ");
           var capacity = avail.capacity || 15;
           var sold = (avail.sold && avail.sold[ev.id]) || 0;
           var remaining = Math.max(0, capacity - sold);
@@ -486,7 +490,7 @@
             '<div class="agenda-info">' +
               '<span class="agenda-when">' +
                 '<span class="agenda-date">' + L.fullDate + '</span>' +
-                '<span class="agenda-time">' + L.time + ' uur &middot; ' + ev.city + '</span>' +
+                '<span class="agenda-time">' + L.time + ' uur &middot; ' + place + '</span>' +
               '</span>' +
               '<h3>Maak je eigen suncatcher vol licht</h3>' +
               '<p class="agenda-sub">Los boeken &middot; geen ervaring nodig &middot; materialen &amp; drankje inbegrepen</p>' +
