@@ -592,8 +592,9 @@ body.nav-open { overflow: hidden; }
 section.block { padding: clamp(40px, 6vw, 76px) 0; }
 section.block.alt { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 /* De "Kies jouw dag"-agenda krijgt een zachte beige creme-kleur in plaats van
-   wit, zodat hij bij de rest van de site past. */
-section.block.alt#kalender { background: var(--surface-2); }
+   wit, zodat hij bij de rest van de site past. Het vak is 80% doorzichtig
+   (alpha 0.2) zodat de bewegende achtergrond er zacht doorheen schemert. */
+section.block.alt#kalender { background: rgba(241, 235, 225, 0.2); }
 
 /* Soft color washes — gentle rainbow drift as you scroll down the page */
 .wash-1 { background: var(--wash-1); }
