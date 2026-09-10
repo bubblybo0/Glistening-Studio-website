@@ -64,6 +64,9 @@ export default {
     if (url.pathname === "/availability") {
       return handleAvailability(env);
     }
+    if (url.pathname === "/bookings") {
+      return handleBookings(env, url);
+    }
     if (url.pathname === "/discount") {
       return handleDiscount(url);
     }
@@ -131,6 +134,30 @@ function handleDiscount(url) {
     ...CORS,
     "Cache-Control": "public, max-age=20",
   });
+}
+
+// --- GET /bookings?key=... --------------------------------------------------
+// Geeft alle opgeslagen boekingen terug als JSON, zodat de CRM-sync ze elk uur
+// kan ophalen. Beveiligd met een geheime sleutel (env.BOOKINGS_KEY) die je in
+// Cloudflare (Settings -> Variables) zet; zonder de juiste sleutel: 401. Bewust
+// GEEN CORS-headers, zodat alleen de server-to-server sync er (met sleutel) bij kan.
+async function handleBookings(env, url) {
+  const key = url.searchParams.get("key") || "";
+  if (!env.BOOKINGS_KEY || key !== env.BOOKINGS_KEY) {
+    return json({ error: "unauthorized" }, 401);
+  }
+  const out = [];
+  let cursor;
+  do {
+    const list = await env.TICKETS.list({ prefix: "booking:", cursor });
+    for (const k of list.keys) {
+      const raw = await env.TICKETS.get(k.name);
+      if (raw) { try { out.push(JSON.parse(raw)); } catch (e) {} }
+    }
+    cursor = list.list_complete ? null : list.cursor;
+  } while (cursor);
+  out.sort((a, b) => String(b.bookedAt).localeCompare(String(a.bookedAt)));
+  return json({ bookings: out, count: out.length }, 200);
 }
 
 // --- GET /availability ------------------------------------------------------
@@ -225,7 +252,7 @@ async function handleRequest(request, env) {
 async function handleBook(request, env, url) {
   // Nieuwe manier: het formulier op de site stuurt een POST met naam/e-mail.
   // Oude manier: een gecachte link stuurt een GET met alleen ?qty & ?desc.
-  let eventId, qty, desc, when, name, email, diet, lang, discountInput;
+  let eventId, qty, desc, when, name, email, phone, diet, theme, lang, discountInput;
 
   if (request.method === "POST") {
     const form = await request.formData();
@@ -235,7 +262,9 @@ async function handleBook(request, env, url) {
     when = (form.get("when") || "").toString().trim();
     name = (form.get("name") || "").toString().trim();
     email = (form.get("email") || "").toString().trim();
+    phone = (form.get("phone") || "").toString().trim();
     diet = (form.get("diet") || "").toString().trim();
+    theme = (form.get("theme") || "Suncatcher").toString().trim();
     lang = (form.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
     discountInput = (form.get("discount") || "").toString();
 
@@ -248,7 +277,8 @@ async function handleBook(request, env, url) {
     desc = (url.searchParams.get("desc") || "Glistening Studio workshop").toString();
     eventId = (url.searchParams.get("event") || "").toString().trim();
     when = "";
-    name = email = diet = "";
+    name = email = phone = diet = "";
+    theme = (url.searchParams.get("theme") || "Suncatcher").toString().trim();
     lang = (url.searchParams.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
     discountInput = (url.searchParams.get("discount") || "").toString();
   }
@@ -289,7 +319,7 @@ async function handleBook(request, env, url) {
       redirectUrl: `${SITE}${thanksPath}`,
       webhookUrl: `${url.origin}/webhook`,
       metadata: {
-        eventId, qty, when, name, email, diet, lang,
+        eventId, qty, when, name, email, phone, diet, theme, lang,
         amount,
         discount: discount ? discount.code : "",
         discountPercent: discount ? discount.percent : 0,
@@ -352,6 +382,28 @@ async function handleWebhook(request, env, url) {
     await env.TICKETS.put("counts", JSON.stringify(counts));
   }
 
+  // Volledige boeking opslaan (los per betaling, zodat de CRM-sync ze kan ophalen).
+  try {
+    const record = {
+      paymentId,
+      bookedAt: new Date().toISOString(),          // Boekingsdatum
+      name: (meta.name || "").toString().trim(),
+      email: (meta.email || "").toString().trim(),
+      phone: (meta.phone || "").toString().trim(),  // Telefoonnummer (indien genoemd)
+      diet: (meta.diet || "").toString().trim(),    // Dieetwensen
+      workshopDate: (meta.when || "").toString().trim(), // Gekozen workshop: datum
+      theme: (meta.theme || "Suncatcher").toString().trim(), // Gekozen workshop: thema
+      eventId,
+      qty,
+      amount: (meta.amount || "").toString(),
+      discount: (meta.discount || "").toString().trim(),
+      discountPercent: parseInt(meta.discountPercent, 10) || 0,
+    };
+    await env.TICKETS.put(`booking:${paymentId}`, JSON.stringify(record));
+  } catch (e) {
+    console.log("Boeking opslaan-fout:", e && e.message);
+  }
+
   // Mails versturen (mislukt er één, dan laten we de rest en Mollie met rust).
   try {
     await sendEmails(env, meta, qty, newCount);
@@ -366,6 +418,8 @@ async function handleWebhook(request, env, url) {
 async function sendEmails(env, meta, qty, newCount) {
   const name = (meta.name || "").toString().trim();
   const email = (meta.email || "").toString().trim();
+  const phone = (meta.phone || "").toString().trim();
+  const theme = (meta.theme || "Suncatcher").toString().trim();
   const when = (meta.when || "").toString().trim() || "je gekozen datum";
   const diet = (meta.diet || "").toString().trim();
   // Het echt betaalde bedrag zetten we bij het boeken in de metadata; valt dat
@@ -404,8 +458,9 @@ async function sendEmails(env, meta, qty, newCount) {
       <h2 style="margin:0 0 12px">🎫 Nieuwe boeking!</h2>
       <p><strong>Naam:</strong> ${escapeHtml(name || "-")}<br>
       <strong>E-mail:</strong> ${escapeHtml(email || "-")}<br>
+      <strong>Telefoon:</strong> ${escapeHtml(phone || "-")}<br>
       <strong>Aantal:</strong> ${qty} plek${qty > 1 ? "ken" : ""}<br>
-      <strong>Workshop:</strong> ${escapeHtml(when)}<br>
+      <strong>Workshop:</strong> ${escapeHtml(theme)} · ${escapeHtml(when)}<br>
       <strong>Dieetwensen:</strong> ${escapeHtml(diet || "-")}<br>
       ${discountCode ? `<strong>Kortingscode:</strong> ${escapeHtml(discountCode)} (−${discountPercent}%)<br>` : ""}
       <strong>Betaald:</strong> €${amount}<br>

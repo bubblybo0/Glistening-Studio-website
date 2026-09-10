@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
       close: "Sluiten",
       name: "Je naam",
       email: "Je e-mailadres",
+      phone: "Telefoonnummer",
       diet: "Dieetwensen of allergie&euml;n?",
       optional: "(optioneel)",
       privacy: "We gebruiken je gegevens alleen voor deze boeking.",
@@ -189,6 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
       close: "Close",
       name: "Your name",
       email: "Your email address",
+      phone: "Phone number",
       diet: "Dietary needs or allergies?",
       optional: "(optional)",
       privacy: "We only use your details for this booking.",
@@ -374,6 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '<input type="hidden" name="qty" data-qty>' +
         '<input type="hidden" name="desc" data-desc>' +
         '<input type="hidden" name="when" data-when>' +
+        '<input type="hidden" name="theme" value="Suncatcher" data-theme>' +
         '<input type="hidden" name="lang" value="' + LANG + '">' +
         '<input type="hidden" name="locale" value="' + (LANG === "en" ? "en_US" : "nl_NL") + '">' +
         '<label class="book-field">' + STR.name +
@@ -381,6 +384,9 @@ document.addEventListener("DOMContentLoaded", function () {
         '</label>' +
         '<label class="book-field">' + STR.email +
           '<input type="email" name="email" autocomplete="email" required>' +
+        '</label>' +
+        '<label class="book-field">' + STR.phone + ' <span class="book-opt">' + STR.optional + '</span>' +
+          '<input type="tel" name="phone" autocomplete="tel" inputmode="tel">' +
         '</label>' +
         '<label class="book-field">' + STR.diet + ' <span class="book-opt">' + STR.optional + '</span>' +
           '<textarea name="diet" rows="2"></textarea>' +
@@ -484,6 +490,8 @@ document.addEventListener("DOMContentLoaded", function () {
     d.querySelector("[data-qty]").value = opts.qty;
     d.querySelector("[data-desc]").value = opts.desc;
     d.querySelector("[data-when]").value = opts.when || "";
+    var themeField = d.querySelector("[data-theme]");
+    if (themeField) themeField.value = opts.theme || "Suncatcher";
     // Korting-state en -veld resetten per keer dat het venster opent.
     d._qty = opts.qty;
     d._when = opts.when || "";
