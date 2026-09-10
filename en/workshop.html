@@ -82,7 +82,7 @@
         <ul>
           <li>🕐 Duration: 2 to 2.5 hours</li>
           <li>📅 Date: <span id="evEnglishDate">…</span>, <span id="evTime2">…</span></li>
-          <li>📍 Location: <span id="evCity3">…</span> (exact address to follow)</li>
+          <li>📍 Location: <span id="evLocation">…</span></li>
           <li>💶 €55 per person, including all materials and snacks</li>
           <li>🥗 Vegetarian and vegan snacks and drinks. Anything to keep in mind? Just let me know, and it'll be taken into account</li>
           <li>🎨 All levels welcome, no experience needed</li>
@@ -143,7 +143,8 @@
         document.getElementById("ogTitle").setAttribute("content", "Workshop " + L.englishDate + " · " + city + " · Glistening Studio");
         document.getElementById("ogDescription").setAttribute("content", "Make your own crystal suncatcher on " + L.englishDate + " in " + city + ".");
         document.getElementById("evDateLabel").textContent = L.englishDate;
-        ["evCity1","evCity2","evCity3"].forEach(function (id) { document.getElementById(id).textContent = city; });
+        ["evCity1","evCity2"].forEach(function (id) { document.getElementById(id).textContent = city; });
+        document.getElementById("evLocation").textContent = [ev.venue, ev.street, city].filter(Boolean).join(", ");
         ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = L.time; });
         document.getElementById("evEnglishDate").textContent = L.englishDate;
         ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDayEn; });

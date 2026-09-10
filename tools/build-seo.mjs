@@ -52,8 +52,13 @@ const jsonld = upcoming.map((ev) => ({
   eventStatus: "https://schema.org/EventScheduled",
   location: {
     "@type": "Place",
-    name: `Sfeervol atelier in ${ev.city}`,
-    address: { "@type": "PostalAddress", addressLocality: ev.city, addressCountry: "NL" }
+    name: ev.venue || `Sfeervol atelier in ${ev.city}`,
+    address: {
+      "@type": "PostalAddress",
+      ...(ev.street ? { streetAddress: ev.street } : {}),
+      addressLocality: ev.city,
+      addressCountry: "NL"
+    }
   },
   organizer: { "@type": "Organization", name: "Glistening Studio", url: `${SITE}/` },
   image: `${SITE}/suncatchers-tuin.jpg`,

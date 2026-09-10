@@ -82,7 +82,7 @@
         <ul>
           <li>🕐 Duur: 2 tot 2,5 uur</li>
           <li>📅 Datum: <span id="evDutchDate">…</span>, <span id="evTime2">…</span> uur</li>
-          <li>📍 Locatie: <span id="evCity3">…</span> (exacte locatie volgt nog)</li>
+          <li>📍 Locatie: <span id="evLocation">…</span></li>
           <li>💶 €55 per persoon, inclusief alle materialen en hapjes</li>
           <li>🥗 Vegetarische en veganistische hapjes en drankjes. Heb je iets waar we rekening mee moeten houden? Laat het me even weten, dan houd ik daar rekening mee</li>
           <li>🎨 Alle niveaus welkom, geen ervaring nodig</li>
@@ -161,7 +161,8 @@
         document.getElementById("ogTitle").setAttribute("content", "Workshop " + L.dutchDate + " · " + ev.city + " · Glistening Studio");
         document.getElementById("ogDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + L.dutchDate + " in " + ev.city + ".");
         ["evDateLabel"].forEach(function (id) { document.getElementById(id).textContent = L.dateLabel; });
-        ["evCity1","evCity2","evCity3","evCity4"].forEach(function (id) { document.getElementById(id).textContent = ev.city; });
+        ["evCity1","evCity2","evCity4"].forEach(function (id) { document.getElementById(id).textContent = ev.city; });
+        document.getElementById("evLocation").textContent = [ev.venue, ev.street, ev.city].filter(Boolean).join(", ");
         ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = L.time; });
         document.getElementById("evTime3").textContent = L.time;
         document.getElementById("evDutchDate").textContent = L.dutchDate;
