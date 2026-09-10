@@ -1,0 +1,15 @@
+{
+  "name": "glistening-studio-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Statische site van Glistening Studio + kleine build-/onderhoudsscripts.",
+  "type": "module",
+  "scripts": {
+    "seo": "node tools/build-seo.mjs",
+    "optimize-images": "node tools/optimize-images.mjs",
+    "check-em-dashes": "node tools/check-em-dashes.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

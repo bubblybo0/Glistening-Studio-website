@@ -45,7 +45,7 @@ function endDate(startISO) {
 const jsonld = upcoming.map((ev) => ({
   "@context": "https://schema.org",
   "@type": "Event",
-  name: `Suncatcher workshop ${ev.city} — ${dutchDate(ev.start)}`,
+  name: `Suncatcher workshop ${ev.city} · ${dutchDate(ev.start)}`,
   startDate: ev.start,
   endDate: endDate(ev.start),
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
