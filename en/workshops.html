@@ -391,8 +391,8 @@
 
   <section class="block alt" id="kalender">
     <div class="wrap">
-      <h2>When can you come?</h2>
-      <p class="lede">The days with a workshop are highlighted. Click a highlighted day to book that workshop.</p>
+      <h2>Pick your day</h2>
+      <p class="lede">See a highlighted day? Then there is a spot for you. Click it to reserve your place. See you soon!</p>
       <div class="gls-calendar" id="workshopCalendar"></div>
     </div>
   </section>
@@ -405,24 +405,32 @@
             <img class="agenda-photo" src="../suncatcher-raam.jpg" alt="" loading="lazy">
           </div>
           <div class="agenda-info">
-            <span class="agenda-when">On request</span>
+            <span class="agenda-when">
+              <span class="agenda-date">Your own date</span>
+              <span class="agenda-time">On request &middot; location to be arranged</span>
+            </span>
             <h3>Private group, your party, your workshop</h3>
-            <p>Private group · location to be arranged</p>
-            <p style="margin-top:4px; font-size:0.85rem; color:var(--text-muted);">Or email info@glisteningstudio.com</p>
+            <p class="agenda-sub">A cosy, creative afternoon with your own group.</p>
           </div>
-          <a class="btn btn-ghost" href="private-groups.html">More info</a>
+          <div class="agenda-cta">
+            <a class="btn btn-ghost" href="private-groups.html">More info</a>
+          </div>
         </div>
         <div class="agenda-item">
           <div class="agenda-thumb">
             <img class="agenda-photo" src="../suncatcher-raam.jpg" alt="" loading="lazy">
           </div>
           <div class="agenda-info">
-            <span class="agenda-when">On request</span>
+            <span class="agenda-when">
+              <span class="agenda-date">Your own date</span>
+              <span class="agenda-time">On request &middot; on-site possible</span>
+            </span>
             <h3>Corporate &amp; professional</h3>
-            <p>A great bonding activity for a team outing or networking event</p>
-            <p style="margin-top:4px; font-size:0.85rem; color:var(--text-muted);">Or email info@glisteningstudio.com</p>
+            <p class="agenda-sub">A great bonding activity for a team outing or networking event.</p>
           </div>
-          <a class="btn btn-ghost" href="corporate-groups.html">More info</a>
+          <div class="agenda-cta">
+            <a class="btn btn-ghost" href="corporate-groups.html">More info</a>
+          </div>
         </div>
         <div id="dynamicAgendaItems"></div>
       </div>
@@ -490,21 +498,35 @@
           var L = window.glsEventLabels(ev.start);
           var price = ev.price != null ? ev.price : 55;
           var city = cityEn[ev.city] || ev.city;
+          var capacity = avail.capacity || 15;
           var sold = (avail.sold && avail.sold[ev.id]) || 0;
-          var soldOut = (ev.status && ev.status !== "available") || sold >= (avail.capacity || 15);
+          var remaining = Math.max(0, capacity - sold);
+          var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
+          var spotsLine = soldOut
+            ? '<span class="agenda-spots is-full">Sold out</span>'
+            : (remaining <= 5
+                ? '<span class="agenda-spots is-few">only ' + remaining + (remaining === 1 ? ' spot' : ' spots') + ' left</span>'
+                : '');
           var cta = soldOut
             ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Sold out</span>'
-            : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">More info</a>';
+            : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Book your spot</a>';
           return '<div class="agenda-item' + (soldOut ? ' is-soldout' : '') + '" id="agenda-' + ev.id + '">' +
             '<div class="agenda-thumb">' +
               '<img class="agenda-photo" src="../suncatchers-tuin.jpg" alt="" loading="lazy">' +
             '</div>' +
             '<div class="agenda-info">' +
-              '<span class="agenda-when">' + L.englishDate + ' &middot; ' + L.time + '</span>' +
+              '<span class="agenda-when">' +
+                '<span class="agenda-date">' + L.fullDateEn + '</span>' +
+                '<span class="agenda-time">' + L.time + ' &middot; ' + city + '</span>' +
+              '</span>' +
               '<h3>Make your own suncatcher</h3>' +
-              '<p>Individual booking &middot; ' + city + ' &middot; &euro;' + price + ' pp' + (soldOut ? ' &middot; <strong>sold out</strong>' : '') + '</p>' +
+              '<p class="agenda-sub">Individual booking &middot; no experience needed &middot; materials &amp; a drink included</p>' +
             '</div>' +
-            cta +
+            '<div class="agenda-cta">' +
+              '<span class="agenda-price">&euro;' + price + ' <span class="agenda-price-unit">pp</span></span>' +
+              spotsLine +
+              cta +
+            '</div>' +
           '</div>';
         }).join("");
       })

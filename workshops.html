@@ -405,24 +405,32 @@
             <img class="agenda-photo" src="suncatcher-raam.jpg" alt="" loading="lazy">
           </div>
           <div class="agenda-info">
-            <span class="agenda-when">Op aanvraag</span>
+            <span class="agenda-when">
+              <span class="agenda-date">Jouw eigen datum</span>
+              <span class="agenda-time">Op aanvraag &middot; locatie in overleg</span>
+            </span>
             <h3>Privégroep, jouw feestje, jouw workshop</h3>
-            <p>Privégroep · locatie in overleg</p>
-            <p style="margin-top:4px; font-size:0.85rem; color:var(--text-muted);">Of mail naar info@glisteningstudio.com</p>
+            <p class="agenda-sub">Samen met je eigen groep een gezellige, creatieve middag.</p>
           </div>
-          <a class="btn btn-ghost" href="privegroepen.html">Meer info</a>
+          <div class="agenda-cta">
+            <a class="btn btn-ghost" href="privegroepen.html">Meer info</a>
+          </div>
         </div>
         <div class="agenda-item">
           <div class="agenda-thumb">
             <img class="agenda-photo" src="suncatcher-raam.jpg" alt="" loading="lazy">
           </div>
           <div class="agenda-info">
-            <span class="agenda-when">Op aanvraag</span>
+            <span class="agenda-when">
+              <span class="agenda-date">Jouw eigen datum</span>
+              <span class="agenda-time">Op aanvraag &middot; op locatie mogelijk</span>
+            </span>
             <h3>Zakelijk &amp; professioneel</h3>
-            <p>Verbindende activiteit voor teamuitje of netwerkevenement</p>
-            <p style="margin-top:4px; font-size:0.85rem; color:var(--text-muted);">Of mail naar info@glisteningstudio.com</p>
+            <p class="agenda-sub">Verbindende activiteit voor een teamuitje of netwerkevenement.</p>
           </div>
-          <a class="btn btn-ghost" href="zakelijke-groepen.html">Meer info</a>
+          <div class="agenda-cta">
+            <a class="btn btn-ghost" href="zakelijke-groepen.html">Meer info</a>
+          </div>
         </div>
         <div id="dynamicAgendaItems"></div>
       </div>
@@ -493,9 +501,11 @@
           var remaining = Math.max(0, capacity - sold);
           var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
           // Eerlijke schaarste: alleen tonen als het echt bijna vol is.
-          var scarcity = (!soldOut && remaining <= 5)
-            ? ' &middot; <strong>nog ' + remaining + (remaining === 1 ? ' plek' : ' plekken') + ' vrij</strong>'
-            : '';
+          var spotsLine = soldOut
+            ? '<span class="agenda-spots is-full">Vol</span>'
+            : (remaining <= 5
+                ? '<span class="agenda-spots is-few">nog ' + remaining + (remaining === 1 ? ' plek' : ' plekken') + ' vrij</span>'
+                : '');
           var cta = soldOut
             ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Vol</span>'
             : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Reserveer je plek</a>';
@@ -504,11 +514,18 @@
               '<img class="agenda-photo" src="suncatchers-tuin.jpg" alt="" loading="lazy">' +
             '</div>' +
             '<div class="agenda-info">' +
-              '<span class="agenda-when">' + L.dateLabel + ' &middot; ' + L.time + '</span>' +
+              '<span class="agenda-when">' +
+                '<span class="agenda-date">' + L.fullDate + '</span>' +
+                '<span class="agenda-time">' + L.time + ' uur &middot; ' + ev.city + '</span>' +
+              '</span>' +
               '<h3>Maak je eigen suncatcher vol licht</h3>' +
-              '<p>Los boeken &middot; ' + ev.city + ' &middot; &euro;' + price + ' p.p.' + (soldOut ? ' &middot; <strong>vol</strong>' : scarcity) + '</p>' +
+              '<p class="agenda-sub">Los boeken &middot; geen ervaring nodig &middot; materialen &amp; drankje inbegrepen</p>' +
             '</div>' +
-            cta +
+            '<div class="agenda-cta">' +
+              '<span class="agenda-price">&euro;' + price + ' <span class="agenda-price-unit">p.p.</span></span>' +
+              spotsLine +
+              cta +
+            '</div>' +
           '</div>';
         }).join("");
       })

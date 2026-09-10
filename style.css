@@ -653,17 +653,22 @@ a.card-link:hover h3 { color: var(--accent); }
 }
 .agenda-item {
   display: grid;
-  grid-template-columns: 128px 1fr auto;
+  grid-template-columns: 112px 1fr auto;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px 28px;
+  padding: 20px 24px;
   text-align: left;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.agenda-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(201, 134, 47, 0.14);
 }
 .agenda-thumb {
-  width: 128px;
+  width: 112px;
   aspect-ratio: 1;
   border-radius: 16px;
   overflow: hidden;
@@ -675,27 +680,62 @@ a.card-link:hover h3 { color: var(--accent); }
   object-fit: cover;
   display: block;
 }
-.agenda-when {
-  display: inline-block;
+/* Datum + tijd: de blikvanger van de kaart */
+.agenda-when { display: block; margin-bottom: 7px; }
+.agenda-date {
+  display: block;
   font-family: "Work Sans", sans-serif;
-  font-size: 0.72rem;
+  font-size: 1.18rem;
   font-weight: 700;
-  color: var(--accent-2);
-  background: var(--accent-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 4px 12px;
-  border-radius: 999px;
-  margin-bottom: 10px;
+  color: var(--text);
+  line-height: 1.2;
+  text-transform: capitalize;
 }
-.agenda-info h3 { font-size: 1.25rem; }
+.agenda-time {
+  display: block;
+  margin-top: 3px;
+  font-family: "Work Sans", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+.agenda-info h3 { font-size: 1.18rem; margin: 0; }
 .agenda-info h3 a { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease, color 0.2s ease; }
 .agenda-info h3 a:hover { color: var(--accent); border-bottom-color: var(--accent); }
-.agenda-info p { margin-top: 6px; color: var(--text-muted); font-size: 0.95rem; }
+.agenda-sub { margin-top: 5px; color: var(--text-muted); font-size: 0.9rem; }
+/* Prijs + plekken + knop: gevulde, rustige rechterkolom (geen lege ruimte) */
+.agenda-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
+}
+.agenda-price {
+  font-family: "Work Sans", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.agenda-price-unit { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.agenda-spots {
+  font-family: "Work Sans", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.agenda-spots.is-few { color: var(--accent); }
+.agenda-spots.is-full { color: var(--text-muted); }
 .agenda-item .btn { white-space: nowrap; }
+.agenda-cta .btn { margin-top: 2px; }
 @media (max-width: 700px) {
-  .agenda-item { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 18px; }
-  .agenda-thumb { width: 100%; max-width: 280px; aspect-ratio: 16 / 10; }
+  .agenda-item { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 16px; padding: 22px 20px; }
+  .agenda-thumb { width: 100%; max-width: 260px; aspect-ratio: 16 / 10; }
+  .agenda-when { margin-bottom: 4px; }
+  .agenda-cta { align-items: center; text-align: center; width: 100%; max-width: 260px; }
+  .agenda-cta .btn { width: 100%; }
 }
 
 /* ---------- Maandkalender (huidige + volgende maand) ---------- */
@@ -757,7 +797,22 @@ a.gls-cal-cell.has-workshop:focus-visible {
   box-shadow: 0 6px 16px rgba(201, 134, 47, 0.4);
 }
 a.gls-cal-cell.has-workshop.is-today { outline-color: #fff; }
-.gls-cal-cell.had-workshop { background: var(--accent-soft); color: var(--text-muted); }
+/* Vrije dag: aanklikbaar om zelf een workshop aan te vragen */
+button.gls-cal-cell.can-request {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 1px dashed transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+button.gls-cal-cell.can-request:hover,
+button.gls-cal-cell.can-request:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
 .gls-cal-badge {
   position: absolute;
   top: 3px;
@@ -792,7 +847,7 @@ a.gls-cal-cell.has-workshop.is-today { outline-color: #fff; }
   margin-right: 7px;
 }
 .gls-cal-legend .sw-workshop { background: var(--accent); }
-.gls-cal-legend .sw-past { background: var(--accent-soft); border: 1px solid var(--border); }
+.gls-cal-legend .sw-open { background: transparent; border: 1px dashed var(--accent); }
 /* Aangeklikte agendakaart even laten oplichten na een sprong vanuit de kalender */
 .agenda-item:target { box-shadow: 0 0 0 2px var(--accent); scroll-margin-top: 90px; }
 @media (max-width: 640px) {
@@ -1183,6 +1238,12 @@ footer.site a { color: var(--text-muted); }
   .book-actions { flex-direction: column-reverse; }
   .book-actions .btn { width: 100%; }
 }
+
+/* Aanvraag-venster (workshop aanvragen op een vrije dag) */
+.request-dialog .book-summary { font-size: 0.98rem; color: var(--text); margin: 0 0 16px; }
+.request-note { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 16px; }
+.request-error { margin: 0 0 14px; color: #c0392b; font-size: 0.9rem; font-weight: 600; }
+.request-done-body { line-height: 1.6; margin: 0 0 20px; color: var(--text); }
 
 /* Kortingscode-veld in het boek-venster */
 .book-discount-row { display: flex; gap: 8px; margin-top: 6px; }
