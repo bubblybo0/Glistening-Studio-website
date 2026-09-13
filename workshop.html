@@ -160,13 +160,13 @@
         document.getElementById("metaDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + L.dutchDate + " in " + ev.city + ". Alle info over deze workshop van Glistening Studio.");
         document.getElementById("ogTitle").setAttribute("content", "Workshop " + L.dutchDate + " · " + ev.city + " · Glistening Studio");
         document.getElementById("ogDescription").setAttribute("content", "Maak je eigen kristallen suncatcher op " + L.dutchDate + " in " + ev.city + ".");
-        ["evDateLabel"].forEach(function (id) { document.getElementById(id).textContent = L.dateLabel; });
+        ["evDateLabel"].forEach(function (id) { document.getElementById(id).textContent = L.fullDate; });
         ["evCity1","evCity2","evCity4"].forEach(function (id) { document.getElementById(id).textContent = ev.city; });
         document.getElementById("evLocation").textContent = [ev.venue, ev.street, ev.city].filter(Boolean).join(", ");
         ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = L.time; });
         document.getElementById("evTime3").textContent = L.time;
-        document.getElementById("evDutchDate").textContent = L.dutchDate;
-        document.getElementById("evEnglishDate").textContent = L.englishDate;
+        document.getElementById("evDutchDate").textContent = L.fullDate;
+        document.getElementById("evEnglishDate").textContent = L.fullDateEn;
         ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDay; });
         ["tod1en","tod2en","tod3en"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDayEn; });
 

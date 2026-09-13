@@ -142,11 +142,11 @@
         document.getElementById("metaDescription").setAttribute("content", "Make your own crystal suncatcher on " + L.englishDate + " in " + city + ". All the details about this Glistening Studio workshop.");
         document.getElementById("ogTitle").setAttribute("content", "Workshop " + L.englishDate + " · " + city + " · Glistening Studio");
         document.getElementById("ogDescription").setAttribute("content", "Make your own crystal suncatcher on " + L.englishDate + " in " + city + ".");
-        document.getElementById("evDateLabel").textContent = L.englishDate;
+        document.getElementById("evDateLabel").textContent = L.fullDateEn;
         ["evCity1","evCity2"].forEach(function (id) { document.getElementById(id).textContent = city; });
         document.getElementById("evLocation").textContent = [ev.venue, ev.street, city].filter(Boolean).join(", ");
         ["evTime1","evTime2"].forEach(function (id) { document.getElementById(id).textContent = L.time; });
-        document.getElementById("evEnglishDate").textContent = L.englishDate;
+        document.getElementById("evEnglishDate").textContent = L.fullDateEn;
         ["tod1","tod2","tod3"].forEach(function (id) { document.getElementById(id).textContent = L.timeOfDayEn; });
 
         function showSoldOut() {
