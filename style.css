@@ -1261,6 +1261,7 @@ footer.site a { color: var(--text-muted); }
 .book-field textarea { resize: vertical; }
 .book-opt { font-weight: 400; color: var(--text-muted); }
 .book-privacy { font-size: 0.82rem; color: var(--text-muted); margin: 4px 0 18px; }
+.book-vat { display: block; margin-top: 4px; font-size: 0.82rem; color: var(--text-muted); }
 .book-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .book-actions .btn { cursor: pointer; }
 @media (max-width: 480px) {

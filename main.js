@@ -170,7 +170,6 @@ document.addEventListener("DOMContentLoaded", function () {
       phone: "Telefoonnummer",
       diet: "Dieetwensen of allergie&euml;n?",
       optional: "(optioneel)",
-      privacy: "We gebruiken je gegevens alleen voor deze boeking.",
       cancel: "Annuleren",
       toPayment: "Naar betaling &rarr;",
       working: "Bezig…",
@@ -179,6 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
       discountChecking: "Bezig met controleren…",
       discountApplied: function (p) { return "✓ " + p + "% korting toegepast"; },
       discountInvalid: "Deze kortingscode is niet (meer) geldig.",
+      vatIncl: function (v) { return "incl. &euro;" + v + " btw (21%)"; },
       spot: "plek", spots: "plekken",
       bookWorkshop: "Boek workshop",
       bookMany: function (q) { return "Boek " + q + " tickets"; },
@@ -193,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
       phone: "Phone number",
       diet: "Dietary needs or allergies?",
       optional: "(optional)",
-      privacy: "We only use your details for this booking.",
       cancel: "Cancel",
       toPayment: "To payment &rarr;",
       working: "Working…",
@@ -202,6 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
       discountChecking: "Checking…",
       discountApplied: function (p) { return "✓ " + p + "% discount applied"; },
       discountInvalid: "This discount code is not (or no longer) valid.",
+      vatIncl: function (v) { return "incl. &euro;" + v + " VAT (21%)"; },
       spot: "spot", spots: "spots",
       bookWorkshop: "Book workshop",
       bookMany: function (q) { return "Book " + q + " tickets"; },
@@ -398,7 +398,6 @@ document.addEventListener("DOMContentLoaded", function () {
           '</span>' +
           '<span class="book-discount-msg" data-discount-msg aria-live="polite"></span>' +
         '</label>' +
-        '<p class="book-privacy">' + STR.privacy + '</p>' +
         '<div class="book-actions">' +
           '<button type="button" class="btn btn-ghost" data-cancel>' + STR.cancel + '</button>' +
           '<button type="submit" class="btn btn-primary" data-submit>' + STR.toPayment + '</button>' +
@@ -414,6 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var base = 55 * q;
       var pct = d._discountPercent || 0;
       var total = (base * (100 - pct)) / 100;
+      var vat = total - total / 1.21;
       var parts = "<strong>" + q + " " + (q === 1 ? STR.spot : STR.spots) + "</strong>" +
         (d._when ? " &middot; " + d._when : "") + " &middot; ";
       if (pct > 0) {
@@ -423,6 +423,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         parts += "&euro;" + formatEuro(total);
       }
+      parts += '<span class="book-vat">' + STR.vatIncl(formatEuro(vat)) + '</span>';
       d.querySelector("[data-summary]").innerHTML = parts;
     }
     d._renderSummary = renderSummary;
