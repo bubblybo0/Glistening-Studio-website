@@ -84,7 +84,7 @@
           <li>📅 Datum: <span id="evDutchDate">…</span>, <span id="evTime2">…</span> uur</li>
           <li>📍 Locatie: <span id="evLocation">…</span></li>
           <li>💶 €55 per persoon, inclusief alle materialen en hapjes</li>
-          <li>🥗 Vegetarische en veganistische hapjes en drankjes. Heb je iets waar we rekening mee moeten houden? Laat het me even weten, dan houd ik daar rekening mee</li>
+          <li>🥗 Vegetarische hapjes en drankjes. Heb je iets waar we rekening mee moeten houden? Laat het me even weten, dan houd ik daar rekening mee</li>
           <li>🎨 Alle niveaus welkom, geen ervaring nodig</li>
         </ul>
       </div>
@@ -105,7 +105,7 @@
             <li>📅 Date: <span id="evEnglishDate">…</span>, <span id="evTime3">…</span></li>
             <li>📍 Location: <span id="evCity4">…</span> (exact address to follow)</li>
             <li>💶 €55 per person, includes all materials and snacks</li>
-            <li>🥗 Vegetarian and vegan snacks and drinks. Anything to keep in mind? Just let me know, and it'll be taken into account</li>
+            <li>🥗 Vegetarian snacks and drinks. Anything to keep in mind? Just let me know, and it'll be taken into account</li>
             <li>🎨 All skill levels welcome, no experience needed</li>
           </ul>
           <p>Any questions before you book? Feel free to email <a href="mailto:info@glisteningstudio.com">info@glisteningstudio.com</a>. Hope to meet you soon at the workshop!</p>
@@ -180,8 +180,8 @@
 
         // Datum + tijd + stad, met jaartal, voor de bevestigingsmail en het seintje.
         var year = new Date(ev.start).getFullYear();
-        var whenLabel = L.dutchDate + " " + year + ", " + L.time + " uur, " + ev.city;
-        var eventDesc = L.dutchDate + " - " + ev.city;
+        var whenLabel = L.fullDate + " " + year + ", " + L.time + " uur, " + ev.city;
+        var eventDesc = L.fullDate + " - " + ev.city;
 
         // Live beschikbaarheid ophalen: hoeveel plekken zijn al betaald?
         window.glsFetchAvailability().then(function (avail) {

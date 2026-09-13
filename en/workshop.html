@@ -84,7 +84,7 @@
           <li>📅 Date: <span id="evEnglishDate">…</span>, <span id="evTime2">…</span></li>
           <li>📍 Location: <span id="evLocation">…</span></li>
           <li>💶 €55 per person, including all materials and snacks</li>
-          <li>🥗 Vegetarian and vegan snacks and drinks. Anything to keep in mind? Just let me know, and it'll be taken into account</li>
+          <li>🥗 Vegetarian snacks and drinks. Anything to keep in mind? Just let me know, and it'll be taken into account</li>
           <li>🎨 All levels welcome, no experience needed</li>
         </ul>
       </div>
@@ -159,8 +159,8 @@
 
         // Date + time + city, with year, for the confirmation email and the notification.
         var year = new Date(ev.start).getFullYear();
-        var whenLabel = L.englishDate + " " + year + ", " + L.time + ", " + city;
-        var eventDesc = L.englishDate + " - " + city;
+        var whenLabel = L.fullDateEn + " " + year + ", " + L.time + ", " + city;
+        var eventDesc = L.fullDateEn + " - " + city;
 
         // Fetch live availability: how many spots are already paid for?
         window.glsFetchAvailability().then(function (avail) {
