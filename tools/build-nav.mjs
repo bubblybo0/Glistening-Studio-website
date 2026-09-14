@@ -15,7 +15,7 @@
 // link naar de andere taalversie (alt). Meer is niet nodig.
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -100,30 +100,40 @@ function buildOverlay(cfg, s) {
 </div>`;
 }
 
-let changed = 0;
-for (const [rel, cfg] of Object.entries(PAGES)) {
-  const s = STR[cfg.lang];
-  const file = join(root, rel);
-  const original = readFileSync(file, "utf8");
+// Genereert de nav op alle pagina's. Wordt los aangeroepen (node tools/build-nav.mjs)
+// en ook vanuit build-seo.mjs, zodat één commando alles bijwerkt.
+export function buildSiteNav() {
+  let changed = 0;
+  for (const [rel, cfg] of Object.entries(PAGES)) {
+    const s = STR[cfg.lang];
+    const file = join(root, rel);
+    const original = readFileSync(file, "utf8");
 
-  let html = original;
-  const nav = buildNav(cfg, s);
-  const overlay = buildOverlay(cfg, s);
+    let html = original;
+    const nav = buildNav(cfg, s);
+    const overlay = buildOverlay(cfg, s);
 
-  const navRe = /<nav class="site-nav">[\s\S]*?<\/nav>/;
-  const overlayRe = /<div class="nav-overlay" id="navOverlay">[\s\S]*?<\/div>/;
-  if (!navRe.test(html)) throw new Error(`Geen <nav class="site-nav"> gevonden in ${rel}`);
-  if (!overlayRe.test(html)) throw new Error(`Geen nav-overlay gevonden in ${rel}`);
+    const navRe = /<nav class="site-nav">[\s\S]*?<\/nav>/;
+    const overlayRe = /<div class="nav-overlay" id="navOverlay">[\s\S]*?<\/div>/;
+    if (!navRe.test(html)) throw new Error(`Geen <nav class="site-nav"> gevonden in ${rel}`);
+    if (!overlayRe.test(html)) throw new Error(`Geen nav-overlay gevonden in ${rel}`);
 
-  html = html.replace(navRe, nav).replace(overlayRe, overlay);
+    html = html.replace(navRe, nav).replace(overlayRe, overlay);
 
-  if (html !== original) {
-    writeFileSync(file, html);
-    changed++;
-    console.log(`bijgewerkt: ${rel}`);
+    if (html !== original) {
+      writeFileSync(file, html);
+      changed++;
+      console.log(`bijgewerkt: ${rel}`);
+    }
   }
+
+  console.log(changed === 0
+    ? `Navigatie is al up-to-date (${Object.keys(PAGES).length} pagina's gecontroleerd).`
+    : `Navigatie bijgewerkt op ${changed} van ${Object.keys(PAGES).length} pagina's.`);
+  return changed;
 }
 
-console.log(changed === 0
-  ? `Navigatie is al up-to-date (${Object.keys(PAGES).length} pagina's gecontroleerd).`
-  : `Navigatie bijgewerkt op ${changed} van ${Object.keys(PAGES).length} pagina's.`);
+// Alleen uitvoeren als dit bestand direct wordt gedraaid (niet bij importeren).
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  buildSiteNav();
+}

@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { buildSiteNav } from "./build-nav.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "https://glisteningstudio.com";
@@ -94,3 +95,6 @@ const sitemap =
 writeFileSync(join(root, "sitemap.xml"), sitemap);
 
 console.log(`SEO bijgewerkt: ${upcoming.length} komende workshop(s) in JSON-LD, ${pages.length} pagina's in sitemap.`);
+
+// --- 3. navigatie/menu/taalknop op elke pagina bijwerken -------------------
+buildSiteNav();
