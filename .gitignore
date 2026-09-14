@@ -7,3 +7,6 @@ BLOK-B-DEEL2-DNS.md
 
 # Privé Codex-review workflow (prompt + rapporten blijven lokaal, niet publiek)
 codex-review/
+
+# Persoonlijke Claude Code-instellingen (blijven lokaal)
+.claude/settings.local.json
