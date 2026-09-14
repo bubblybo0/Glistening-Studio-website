@@ -1246,6 +1246,18 @@ footer.site {
 }
 footer.site .wrap { display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: space-between; align-items: center; }
 footer.site a { color: var(--text-muted); }
+/* Socials als icoontjes in de footer */
+.footer-socials { display: inline-flex; align-items: center; gap: 14px; }
+.footer-socials a {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.footer-socials a:hover { color: var(--accent); transform: translateY(-1px); }
+.footer-socials svg { width: 20px; height: 20px; display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .footer-socials a, .footer-socials a:hover { transition: none; transform: none; }
+}
 
 .skip-link {
   position: absolute;
