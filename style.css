@@ -1008,6 +1008,87 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
   .social-links a, .social-links a:hover { transition: none; transform: none; }
 }
 
+/* ---------- Contact — foto + gegevens naast elkaar ---------- */
+.contact-hub {
+  margin-top: 34px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 44px;
+  align-items: center;
+}
+.contact-photo {
+  margin: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 44px rgba(54, 45, 36, 0.16);
+}
+.contact-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.contact-details { display: flex; flex-direction: column; gap: 24px; }
+.contact-row { display: flex; align-items: center; gap: 16px; }
+.contact-ic {
+  flex: none;
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.contact-ic svg { width: 22px; height: 22px; }
+.contact-row-label {
+  display: block;
+  font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); font-weight: 600;
+}
+.contact-mail, .contact-row-value {
+  font-size: 1.18rem; font-weight: 600; color: var(--text);
+}
+.contact-mail {
+  text-decoration: none;
+  word-break: break-word;
+  transition: color 0.2s ease;
+}
+.contact-mail:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.contact-socials .contact-row-label { margin-bottom: 12px; }
+.contact-socials .social-links { flex-direction: row; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 760px) {
+  .contact-hub { grid-template-columns: 1fr; gap: 26px; }
+  .contact-photo img { aspect-ratio: 4 / 3; }
+}
+
+/* ---------- Kleine agenda-widget op de contactpagina ---------- */
+.contact-agenda-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.contact-agenda-head h2 { margin: 0; }
+.mini-agenda { margin-top: 24px; display: grid; gap: 14px; }
+.mini-event {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 22px;
+}
+.mini-event-date {
+  flex: none; text-align: center; min-width: 66px;
+  background: var(--accent-soft); color: var(--accent);
+  border-radius: 12px; padding: 9px 10px; line-height: 1.05;
+}
+.mini-event-date .d { display: block; font-size: 1.55rem; font-weight: 700; }
+.mini-event-date .m { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.mini-event-info { flex: 1 1 200px; }
+.mini-event-info h3 { margin: 0 0 2px; font-size: 1.06rem; }
+.mini-event-info p { margin: 0; color: var(--text-muted); font-size: 0.94rem; }
+.mini-event .btn { flex: none; }
+.mini-agenda-empty { color: var(--text-muted); margin: 0; }
+.mini-agenda-empty a { color: var(--accent); }
+
 /* ---------- Event / ticket page ---------- */
 .event-layout {
   margin-top: 40px;
@@ -1413,6 +1494,12 @@ footer.site a { color: var(--text-muted); }
   .story-row-even { grid-template-columns: 1fr; }
   .story-row-even .story-text { order: 0; }
   .story-row-even .story-photo { order: 1; }
+  /* Geef het fotoblok een expliciete breedte, zodat aspect-ratio de hoogte al
+     reserveert vóórdat de lazy-afbeelding geladen is. Zonder dit klapt het
+     grid-item met alleen aspect-ratio + een nog-lege <img> in tot 0 breedte en
+     hoogte: de foto blijft dan onzichtbaar (en laadt soms niet eens) terwijl de
+     tekst wel verschijnt. */
+  .story-row-even .story-photo { width: 100%; }
 }
 
 /* Homepage "Maak een suncatcher"-kaart: op mobiel netjes in één kolom,
