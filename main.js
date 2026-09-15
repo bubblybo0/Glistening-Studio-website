@@ -57,7 +57,10 @@
     var locale = opts.lang === "en" ? "en-US" : "nl-NL";
     var isEn = opts.lang === "en";
     var cityMap = opts.cityMap || {};
-    var MONTHS_TO_SHOW = 2;
+    var MONTHS_TO_SHOW = opts.monthsToShow || 2;
+    // Pagina's zonder eigen agendalijst (zoals contact) kunnen workshopdagen naar
+    // de workshopspagina laten linken via opts.agendaBase (bv. "workshops.html").
+    var agendaBase = opts.agendaBase || "";
 
     // Datumsleutel "YYYY-MM-DD" in de tijdzone Amsterdam, zodat een workshop op
     // de juiste dag in het raster valt (ongeacht de tijdzone van de bezoeker).
@@ -134,7 +137,7 @@
         var dayName = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(new Date(key + "T12:00:00"));
         var label = dayName + ": " + descParts.join(", ");
         var badge = upcoming.length > 1 ? '<span class="gls-cal-badge">' + upcoming.length + '</span>' : "";
-        html += '<a class="' + cls + ' has-workshop" role="gridcell" href="#agenda-' +
+        html += '<a class="' + cls + ' has-workshop" role="gridcell" href="' + agendaBase + '#agenda-' +
           encodeURIComponent(upcoming[0].id) + '" title="' + label + '" aria-label="' + label + '">' +
           day + badge + '</a>';
       }
