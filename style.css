@@ -1016,7 +1016,7 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
-  align-items: center;
+  align-items: stretch;
 }
 .contact-photo {
   margin: 0;
@@ -1024,13 +1024,14 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
   overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: 0 18px 44px rgba(54, 45, 36, 0.16);
+  min-height: 460px;
 }
 .contact-photo img {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
+  object-position: center;
 }
 .contact-details { display: flex; flex-direction: column; gap: 24px; }
 .contact-row { display: flex; align-items: center; gap: 16px; }
@@ -1072,23 +1073,24 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
 
 @media (max-width: 760px) {
   .contact-hub { grid-template-columns: 1fr; gap: 26px; }
-  .contact-photo img { aspect-ratio: 4 / 3; }
+  .contact-photo { min-height: 0; }
+  .contact-photo img { height: auto; aspect-ratio: 4 / 3; }
 }
 
-/* ---------- Kalender-widget op de contactpagina ---------- */
-.contact-agenda-head {
+/* ---------- Kalender-widget in de contactkolom (onder de socials) ---------- */
+.contact-cal-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
 }
-.contact-agenda-head h2 { margin: 0; }
-.contact-calendar { margin-top: 24px; }
-/* Eén maand netjes gecentreerd i.p.v. in een half raster. */
+.contact-cal-link { font-size: 0.9rem; color: var(--accent); text-decoration: none; }
+.contact-cal-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* De maandkalender vult de kolom naast de foto. */
 .contact-calendar .gls-cal-months {
-  grid-template-columns: minmax(0, 400px);
-  justify-content: center;
-  max-width: 420px;
+  grid-template-columns: 1fr;
+  max-width: none;
+  margin: 0;
 }
-.contact-calendar-empty { color: var(--text-muted); margin: 24px 0 0; }
+.contact-calendar-empty { color: var(--text-muted); margin: 0; }
 .contact-calendar-empty a { color: var(--accent); }
 
 /* ---------- Event / ticket page ---------- */
