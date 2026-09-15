@@ -348,6 +348,7 @@ body.nav-open { overflow: hidden; }
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 13px 24px;
   border-radius: 999px;
@@ -1010,10 +1011,11 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
 
 /* ---------- Contact — foto + gegevens naast elkaar ---------- */
 .contact-hub {
-  margin-top: 34px;
+  margin: 34px auto 0;
+  max-width: 940px;
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 44px;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
   align-items: center;
 }
 .contact-photo {
@@ -1058,36 +1060,36 @@ body.info-page .page-ambient-bg { opacity: 0.42; }
 .contact-socials .contact-row-label { margin-bottom: 12px; }
 .contact-socials .social-links { flex-direction: row; flex-wrap: wrap; gap: 12px; }
 
+/* Naam boven de gegevens, zodat mensen weten met wie ze mailen. */
+.contact-intro { margin-bottom: 6px; }
+.contact-name {
+  margin: 0;
+  font-family: "Petrona", Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: var(--text);
+}
+
 @media (max-width: 760px) {
   .contact-hub { grid-template-columns: 1fr; gap: 26px; }
   .contact-photo img { aspect-ratio: 4 / 3; }
 }
 
-/* ---------- Kleine agenda-widget op de contactpagina ---------- */
+/* ---------- Kalender-widget op de contactpagina ---------- */
 .contact-agenda-head {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
 }
 .contact-agenda-head h2 { margin: 0; }
-.mini-agenda { margin-top: 24px; display: grid; gap: 14px; }
-.mini-event {
-  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 18px 22px;
+.contact-calendar { margin-top: 24px; }
+/* Eén maand netjes gecentreerd i.p.v. in een half raster. */
+.contact-calendar .gls-cal-months {
+  grid-template-columns: minmax(0, 400px);
+  justify-content: center;
+  max-width: 420px;
 }
-.mini-event-date {
-  flex: none; text-align: center; min-width: 66px;
-  background: var(--accent-soft); color: var(--accent);
-  border-radius: 12px; padding: 9px 10px; line-height: 1.05;
-}
-.mini-event-date .d { display: block; font-size: 1.55rem; font-weight: 700; }
-.mini-event-date .m { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
-.mini-event-info { flex: 1 1 200px; }
-.mini-event-info h3 { margin: 0 0 2px; font-size: 1.06rem; }
-.mini-event-info p { margin: 0; color: var(--text-muted); font-size: 0.94rem; }
-.mini-event .btn { flex: none; }
-.mini-agenda-empty { color: var(--text-muted); margin: 0; }
-.mini-agenda-empty a { color: var(--accent); }
+.contact-calendar-empty { color: var(--text-muted); margin: 24px 0 0; }
+.contact-calendar-empty a { color: var(--accent); }
 
 /* ---------- Event / ticket page ---------- */
 .event-layout {
