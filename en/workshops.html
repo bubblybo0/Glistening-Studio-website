@@ -513,14 +513,20 @@
           var sold = (avail.sold && avail.sold[ev.id]) || 0;
           var remaining = Math.max(0, capacity - sold);
           var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
+          // Online booking closes 48 hours before the start.
+          var bookingClosed = !soldOut && !window.glsBookingOpen(ev.start);
           var spotsLine = soldOut
             ? '<span class="agenda-spots is-full">Sold out</span>'
-            : (remaining <= 5
-                ? '<span class="agenda-spots is-few">only ' + remaining + (remaining === 1 ? ' spot' : ' spots') + ' left</span>'
-                : '');
+            : (bookingClosed
+                ? '<span class="agenda-spots">online booking closed</span>'
+                : (remaining <= 5
+                    ? '<span class="agenda-spots is-few">only ' + remaining + (remaining === 1 ? ' spot' : ' spots') + ' left</span>'
+                    : ''));
           var cta = soldOut
             ? '<span class="btn btn-ghost is-disabled" aria-disabled="true">Sold out</span>'
-            : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Book your spot</a>';
+            : (bookingClosed
+                ? '<a class="btn btn-ghost" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Email me about this date</a>'
+                : '<a class="btn btn-primary" href="workshop.html?event=' + encodeURIComponent(ev.id) + '">Book your spot</a>');
           return '<div class="agenda-item' + (soldOut ? ' is-soldout' : '') + '" id="agenda-' + ev.id + '">' +
             '<div class="agenda-thumb">' +
               '<img class="agenda-photo" src="../suncatchers-tuin.jpg" alt="" loading="lazy">' +

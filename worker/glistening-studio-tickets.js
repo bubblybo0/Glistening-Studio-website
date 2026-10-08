@@ -21,6 +21,9 @@
 // ===========================================================================
 
 const CAPACITY = 15;                              // max. plekken per workshop
+const BOOKING_CUTOFF_HOURS = 48;                  // online boeken sluit zoveel uur vóór aanvang
+const REMINDER_TOTAL = 3;                          // seintje aan Kiki: hoe vaak in totaal
+const REMINDER_GAP_MS = 60 * 60 * 1000;            // tijd tussen de seintjes (1 uur)
 const PRICE_PER_TICKET = 55;                      // prijs per ticket in euro
 const SITE = "https://glisteningstudio.com";      // je website
 const FROM_EMAIL = "Glistening Studio <info@mail.glisteningstudio.com>"; // afzender mails (Resend-subdomein)
@@ -80,6 +83,12 @@ export default {
       return handleBook(request, env, url);
     }
     return new Response("Not found", { status: 404 });
+  },
+
+  // Cloudflare roept dit automatisch aan volgens het schema in wrangler.toml.
+  // Het verstuurt de geplande herhaal-seintjes aan Kiki (zie handleScheduled).
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleScheduled(env));
   },
 };
 
@@ -248,11 +257,29 @@ async function handleRequest(request, env) {
   return json({ ok: true }, 200, CORS);
 }
 
+// Haalt de officiële starttijd van een workshop op uit events.json op de site.
+// Dit is de bron van waarheid voor de 48-uursgrens: zo kan niemand via een
+// vervalst formulierveld tóch binnen de 48 uur boeken. Lukt ophalen niet, dan
+// geven we null terug en valt /book terug op de meegestuurde start (de site
+// bewaakt de grens ook al), zodat een tijdelijke storing geen verkoop blokkeert.
+async function getEventStart(eventId) {
+  if (!eventId) return null;
+  try {
+    const res = await fetch(SITE + "/events.json", { cf: { cacheTtl: 60 } });
+    if (!res.ok) return null;
+    const events = await res.json();
+    const ev = (events || []).find(function (e) { return e && e.id === eventId; });
+    return ev && ev.start ? ev.start : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // --- /book: betaling starten ------------------------------------------------
 async function handleBook(request, env, url) {
   // Nieuwe manier: het formulier op de site stuurt een POST met naam/e-mail.
   // Oude manier: een gecachte link stuurt een GET met alleen ?qty & ?desc.
-  let eventId, qty, desc, when, name, email, phone, diet, theme, lang, discountInput;
+  let eventId, qty, desc, when, start, name, email, phone, diet, theme, lang, discountInput;
 
   if (request.method === "POST") {
     const form = await request.formData();
@@ -260,6 +287,7 @@ async function handleBook(request, env, url) {
     qty = clampQty(form.get("qty"));
     desc = (form.get("desc") || "Glistening Studio workshop").toString();
     when = (form.get("when") || "").toString().trim();
+    start = (form.get("start") || "").toString().trim();
     name = (form.get("name") || "").toString().trim();
     email = (form.get("email") || "").toString().trim();
     phone = (form.get("phone") || "").toString().trim();
@@ -277,6 +305,7 @@ async function handleBook(request, env, url) {
     desc = (url.searchParams.get("desc") || "Glistening Studio workshop").toString();
     eventId = (url.searchParams.get("event") || "").toString().trim();
     when = "";
+    start = (url.searchParams.get("start") || "").toString().trim();
     name = email = phone = diet = "";
     theme = (url.searchParams.get("theme") || "Suncatcher").toString().trim();
     lang = (url.searchParams.get("lang") || "").toString().trim().toLowerCase() === "en" ? "en" : "nl";
@@ -300,6 +329,21 @@ async function handleBook(request, env, url) {
     if (sold + qty > CAPACITY) {
       const left = CAPACITY - sold;
       return htmlPage("Nog maar " + left + " plek" + (left === 1 ? "" : "ken") + " vrij", "Er " + (left === 1 ? "is" : "zijn") + " nog " + left + " plek" + (left === 1 ? "" : "ken") + " voor deze workshop. Ga terug en kies een lager aantal.");
+    }
+  }
+
+  // 48-uursgrens: online boeken sluit ruim voor aanvang. We bepalen de starttijd
+  // bij voorkeur uit events.json (niet te vervalsen); lukt dat niet, dan vallen we
+  // terug op de meegestuurde start. Kunnen we de tijd helemaal niet bepalen, dan
+  // laten we het door (de site bewaakt de grens ook al).
+  const startISO = (await getEventStart(eventId)) || start;
+  if (startISO) {
+    const startMs = new Date(startISO).getTime();
+    if (!isNaN(startMs) && startMs - Date.now() <= BOOKING_CUTOFF_HOURS * 60 * 60 * 1000) {
+      return htmlPage(
+        "Online boeken is gesloten",
+        "Voor deze workshop kun je vanaf " + BOOKING_CUTOFF_HOURS + " uur voor aanvang niet meer online boeken. Mail gerust naar info@glisteningstudio.com, dan kijken we of er nog plek is. Er is niets afgeschreven."
+      );
     }
   }
 
@@ -404,18 +448,112 @@ async function handleWebhook(request, env, url) {
     console.log("Boeking opslaan-fout:", e && e.message);
   }
 
-  // Mails versturen (mislukt er één, dan laten we de rest en Mollie met rust).
+  // Bevestiging aan de klant (mislukt die, dan laten we de rest en Mollie met rust).
   try {
-    await sendEmails(env, meta, qty, newCount);
+    await sendCustomerEmail(env, meta, qty);
   } catch (e) {
-    console.log("Mail-fout:", e && e.message);
+    console.log("Klant-mail-fout:", e && e.message);
+  }
+
+  // Seintje aan Kiki: nu meteen (1 van 3), en daarna nog 2x met een uur ertussen.
+  // De herhalingen zetten we als taak in KV; de scheduled-handler (cron hieronder)
+  // verstuurt ze zodra ze aan de beurt zijn.
+  try {
+    await sendKikiNotification(env, meta, qty, newCount, 1, REMINDER_TOTAL);
+    if (REMINDER_TOTAL > 1) {
+      const reminder = {
+        meta: meta,
+        qty: qty,
+        newCount: newCount,
+        attempt: 2,                 // het eerstvolgende seintje dat nog moet
+        total: REMINDER_TOTAL,
+        dueAt: new Date(Date.now() + REMINDER_GAP_MS).toISOString(),
+      };
+      // expirationTtl is een vangnet: zou de cron ooit uitvallen, dan ruimt KV
+      // dit restje na een week vanzelf op (geen eindeloze oude taken).
+      await env.TICKETS.put("reminder:" + paymentId, JSON.stringify(reminder), {
+        expirationTtl: 7 * 24 * 60 * 60,
+      });
+    }
+  } catch (e) {
+    console.log("Seintje-mail-fout:", e && e.message);
   }
 
   return new Response("ok", { status: 200 });
 }
 
+// --- Cron: de herhaalde seintjes aan Kiki versturen -------------------------
+// Cloudflare roept deze handler elke paar minuten aan (zie wrangler.toml). We
+// kijken welke geplande seintjes "aan de beurt" zijn (dueAt in het verleden),
+// versturen die, en plannen zo nodig het volgende. Is het laatste seintje
+// verstuurd, dan verwijderen we de taak.
+async function handleScheduled(env) {
+  let cursor;
+  do {
+    const list = await env.TICKETS.list({ prefix: "reminder:", cursor: cursor });
+    for (const k of list.keys) {
+      let rec;
+      try {
+        rec = JSON.parse(await env.TICKETS.get(k.name));
+      } catch (e) {
+        continue;
+      }
+      if (!rec || !rec.dueAt) continue;
+      if (new Date(rec.dueAt).getTime() > Date.now()) continue; // nog niet aan de beurt
+
+      try {
+        await sendKikiNotification(env, rec.meta, rec.qty, rec.newCount, rec.attempt, rec.total);
+      } catch (e) {
+        console.log("Herinnering-mail-fout:", e && e.message);
+        continue; // laten staan, dan proberen we het de volgende keer nog eens
+      }
+
+      if (rec.attempt >= rec.total) {
+        await env.TICKETS.delete(k.name); // dit was de laatste
+      } else {
+        rec.attempt = rec.attempt + 1;
+        rec.dueAt = new Date(Date.now() + REMINDER_GAP_MS).toISOString();
+        await env.TICKETS.put(k.name, JSON.stringify(rec), { expirationTtl: 7 * 24 * 60 * 60 });
+      }
+    }
+    cursor = list.list_complete ? null : list.cursor;
+  } while (cursor);
+}
+
 // --- Mails via Resend -------------------------------------------------------
-async function sendEmails(env, meta, qty, newCount) {
+// 1) Bevestiging aan de klant (jouw goedgekeurde tekst).
+async function sendCustomerEmail(env, meta, qty) {
+  const name = (meta.name || "").toString().trim();
+  const email = (meta.email || "").toString().trim();
+  const when = (meta.when || "").toString().trim() || "je gekozen datum";
+  if (!email) return;
+
+  const boeking = `${qty} plek${qty > 1 ? "ken" : ""} · ${when}`;
+  const klantHtml = `
+    <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320;max-width:560px">
+      <p>Beste ${escapeHtml(name || "deelnemer")},</p>
+      <p>Wat leuk dat je erbij bent! Je plek is gereserveerd, ik kijk er nu al naar uit. 😊</p>
+      <p style="background:#faf3e6;border-radius:10px;padding:12px 16px;margin:18px 0">
+        <strong>Je boeking:</strong> ${escapeHtml(boeking)}
+      </p>
+      <p>Tijdens de workshop maak je in een kleine, gezellige groep je eigen kristallen suncatcher. Alle materialen (kristallen, kralen en bedeltjes) liggen voor je klaar, dus je hoeft zelf niets mee te nemen. Geen ervaring nodig; er is alle ruimte om te spelen en te ontdekken. Reken op zo'n 2 tot 2,5 uur, met hapjes en drankjes erbij. En vooral heel veel creatieve gezelligheid.</p>
+      <p>📌 Een paar dagen van tevoren stuur ik je de exacte locatie en de laatste praktische details.</p>
+      <p>💌 Zijn je dieetwensen veranderd? Laat het gerust weten.</p>
+      <p>Ik kijk er naar uit om je bij de workshop te zien! 🌸</p>
+      <p>Warme groet,<br>Kiki · Glistening Studio</p>
+    </div>`;
+  await resendSend(env, {
+    to: email,
+    subject: "✨ Reservering suncatcher workshop ✨",
+    html: klantHtml,
+    reply_to: NOTIFY_EMAIL,
+  });
+}
+
+// 2) Seintje aan Kiki (met naam, datum, aantal en eventuele dieetwensen).
+// Dit seintje gaat meerdere keren: "attempt" is het hoeveelste seintje dit is
+// (1, 2, 3) en "total" hoeveel er in totaal komen, zodat je herhalingen herkent.
+async function sendKikiNotification(env, meta, qty, newCount, attempt, total) {
   const name = (meta.name || "").toString().trim();
   const email = (meta.email || "").toString().trim();
   const phone = (meta.phone || "").toString().trim();
@@ -428,34 +566,19 @@ async function sendEmails(env, meta, qty, newCount) {
   const discountCode = (meta.discount || "").toString().trim();
   const discountPercent = parseInt(meta.discountPercent, 10) || 0;
 
-  // 1) Bevestiging aan de klant (jouw goedgekeurde tekst).
-  if (email) {
-    const boeking = `${qty} plek${qty > 1 ? "ken" : ""} · ${when}`;
-    const klantHtml = `
-      <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320;max-width:560px">
-        <p>Beste ${escapeHtml(name || "deelnemer")},</p>
-        <p>Wat leuk dat je erbij bent! Je plek is gereserveerd, ik kijk er nu al naar uit. 😊</p>
-        <p style="background:#faf3e6;border-radius:10px;padding:12px 16px;margin:18px 0">
-          <strong>Je boeking:</strong> ${escapeHtml(boeking)}
-        </p>
-        <p>Tijdens de workshop maak je in een kleine, gezellige groep je eigen kristallen suncatcher. Alle materialen (kristallen, kralen en bedeltjes) liggen voor je klaar, dus je hoeft zelf niets mee te nemen. Geen ervaring nodig; er is alle ruimte om te spelen en te ontdekken. Reken op zo'n 2 tot 2,5 uur, met hapjes en drankjes erbij. En vooral heel veel creatieve gezelligheid.</p>
-        <p>📌 Een paar dagen van tevoren stuur ik je de exacte locatie en de laatste praktische details.</p>
-        <p>💌 Zijn je dieetwensen veranderd? Laat het gerust weten.</p>
-        <p>Ik kijk er naar uit om je bij de workshop te zien! 🌸</p>
-        <p>Warme groet,<br>Kiki · Glistening Studio</p>
-      </div>`;
-    await resendSend(env, {
-      to: email,
-      subject: "✨ Reservering suncatcher workshop ✨",
-      html: klantHtml,
-      reply_to: NOTIFY_EMAIL,
-    });
-  }
+  const isReminder = attempt > 1;
+  const tag = isReminder ? ` (herinnering ${attempt} van ${total})` : "";
+  const heading = isReminder
+    ? `🔔 Herinnering: boeking van ${escapeHtml(name || "onbekend")}`
+    : "🎫 Nieuwe boeking!";
+  const reminderNote = isReminder
+    ? `<p style="color:#8a7a66;margin:0 0 12px">Dit is herinnering ${attempt} van ${total} voor dezelfde boeking, zodat je 'm zeker niet mist.</p>`
+    : "";
 
-  // 2) Seintje aan Kiki (met naam, datum, aantal en eventuele dieetwensen).
   const kikiHtml = `
     <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#2a2320">
-      <h2 style="margin:0 0 12px">🎫 Nieuwe boeking!</h2>
+      <h2 style="margin:0 0 12px">${heading}</h2>
+      ${reminderNote}
       <p><strong>Naam:</strong> ${escapeHtml(name || "-")}<br>
       <strong>E-mail:</strong> ${escapeHtml(email || "-")}<br>
       <strong>Telefoon:</strong> ${escapeHtml(phone || "-")}<br>
@@ -468,7 +591,7 @@ async function sendEmails(env, meta, qty, newCount) {
     </div>`;
   await resendSend(env, {
     to: NOTIFY_EMAIL,
-    subject: `🎫 Nieuwe boeking: ${name || "onbekend"} · ${when}`,
+    subject: `${isReminder ? "🔔" : "🎫"} Nieuwe boeking: ${name || "onbekend"} · ${when}${tag}`,
     html: kikiHtml,
     reply_to: email || NOTIFY_EMAIL,
   });

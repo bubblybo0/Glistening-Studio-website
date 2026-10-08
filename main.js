@@ -29,6 +29,15 @@
     return start + 12 * 60 * 60 * 1000 > Date.now();
   };
 
+  // Online boeken sluit een vast aantal uur vóór de start (standaard 48 uur).
+  // Zo kan Kiki alles rustig klaarzetten en komen er geen last-minute boekingen
+  // binnen. Zowel de site als de Worker houden hier rekening mee.
+  window.GLS_BOOKING_CUTOFF_HOURS = 48;
+  window.glsBookingOpen = function (startISO) {
+    var ms = window.GLS_BOOKING_CUTOFF_HOURS * 60 * 60 * 1000;
+    return new Date(startISO).getTime() - Date.now() > ms;
+  };
+
   // Adres van de Cloudflare ticket-Worker. Ook beschikbaar voor de losse
   // pagina-scripts (workshops.html / workshop.html) om beschikbaarheid op te halen.
   window.GLS_WORKER_BASE = "https://glistening-studio-tickets.noisy-surf-d8b5.workers.dev";
@@ -379,6 +388,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '<input type="hidden" name="qty" data-qty>' +
         '<input type="hidden" name="desc" data-desc>' +
         '<input type="hidden" name="when" data-when>' +
+        '<input type="hidden" name="start" data-start>' +
         '<input type="hidden" name="theme" value="Suncatcher" data-theme>' +
         '<input type="hidden" name="lang" value="' + LANG + '">' +
         '<input type="hidden" name="locale" value="' + (LANG === "en" ? "en_US" : "nl_NL") + '">' +
@@ -494,6 +504,8 @@ document.addEventListener("DOMContentLoaded", function () {
     d.querySelector("[data-qty]").value = opts.qty;
     d.querySelector("[data-desc]").value = opts.desc;
     d.querySelector("[data-when]").value = opts.when || "";
+    var startField = d.querySelector("[data-start]");
+    if (startField) startField.value = opts.start || "";
     var themeField = d.querySelector("[data-theme]");
     if (themeField) themeField.value = opts.theme || "Suncatcher";
     // Korting-state en -veld resetten per keer dat het venster opent.
@@ -524,6 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!minus || !plus || !valueEl || !bookBtn) return;
       var desc = bookBtn.getAttribute("data-worker-desc") || STR.defaultDesc;
       var when = bookBtn.getAttribute("data-when") || "";
+      var start = bookBtn.getAttribute("data-start") || "";
       var eventId = bookBtn.getAttribute("data-event-id") || "";
       var maxQty = parseInt(bookBtn.getAttribute("data-max-qty"), 10);
       if (isNaN(maxQty) || maxQty < 1) maxQty = MAX_TICKET_QTY;
@@ -542,7 +555,7 @@ document.addEventListener("DOMContentLoaded", function () {
       bookBtn.onclick = function (e) {
         e.preventDefault();
         var ticketDesc = desc + " - " + qty + " ticket" + (qty > 1 ? "s" : "");
-        openBookDialog({ eventId: eventId, qty: qty, desc: ticketDesc, when: when });
+        openBookDialog({ eventId: eventId, qty: qty, desc: ticketDesc, when: when, start: start });
       };
       update();
     });

@@ -180,6 +180,25 @@
             p.innerHTML = '<p class="soldout-note"><strong>Deze workshop is uitverkocht.</strong> Mail me gerust via <a href="mailto:info@glisteningstudio.com">info@glisteningstudio.com</a> voor een wachtlijst of de volgende datum.</p>';
           });
         }
+        // Online boeken sluit 48 uur voor aanvang: dan tonen we een nette melding
+        // in plaats van de boekknop, met de uitnodiging om alsnog te mailen.
+        function showBookingClosed() {
+          document.querySelectorAll(".ticket-picker").forEach(function (p) {
+            p.innerHTML = '<p class="soldout-note"><strong>Online boeken is gesloten.</strong> Vanaf 48 uur voor aanvang kun je niet meer online boeken. Wil je toch nog mee? Mail me gerust via <a href="mailto:info@glisteningstudio.com">info@glisteningstudio.com</a>, dan kijk ik of er nog plek is.</p>';
+          });
+        }
+        // De vriendelijke "boek 48 uur van tevoren"-tip. Staat standaard bij elke
+        // workshop; zet "notice": false in de workshop-regel in events.json om 'm
+        // bij die ene workshop weg te halen.
+        function maybeShowNotice() {
+          if (ev.notice === false) return;
+          document.querySelectorAll(".ticket-picker").forEach(function (p) {
+            var n = document.createElement("p");
+            n.className = "booking-notice";
+            n.textContent = "📅 Tip: boek bij voorkeur minstens 48 uur van tevoren, dan kan ik alles goed voor je klaarzetten.";
+            p.appendChild(n);
+          });
+        }
         // Handmatig op "vol" gezet in events.json? Dan meteen uitverkocht tonen.
         if (ev.status && ev.status !== "available") { showSoldOut(); return; }
 
@@ -193,13 +212,17 @@
           var sold = (avail.sold && avail.sold[ev.id]) || 0;
           var remaining = Math.max(0, (avail.capacity || 15) - sold);
           if (remaining <= 0) { showSoldOut(); return; }
+          // Te laat om nog online te boeken (binnen 48 uur voor aanvang)?
+          if (!window.glsBookingOpen(ev.start)) { showBookingClosed(); return; }
           [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
             if (!btn) return;
             btn.setAttribute("data-worker-desc", eventDesc);
             btn.setAttribute("data-event-id", ev.id);
             btn.setAttribute("data-when", whenLabel);
+            btn.setAttribute("data-start", ev.start);
             btn.setAttribute("data-max-qty", String(remaining));
           });
+          maybeShowNotice();
           document.dispatchEvent(new CustomEvent("eventDataReady"));
         });
       })

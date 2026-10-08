@@ -20,3 +20,10 @@ compatibility_date = "2025-01-01"
 [[kv_namespaces]]
 binding = "TICKETS"
 id = "baaf89b077b74e768031c1a81085109f"
+
+# Cron-schema: Cloudflare roept de Worker elke 10 minuten aan (de scheduled-
+# handler). Dat is nodig voor de herhaalde boekings-seintjes aan Kiki: die
+# worden na 1 en 2 uur verstuurd, en deze "wekker" checkt of er eentje aan de
+# beurt is. Niets te doen? Dan stopt de handler meteen weer.
+[triggers]
+crons = ["*/10 * * * *"]
