@@ -32,6 +32,10 @@ function dutchDate(startISO) {
   return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "long", timeZone: TZ }).format(new Date(startISO));
 }
 
+function englishDate(startISO) {
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: TZ }).format(new Date(startISO));
+}
+
 // Voegt uren toe en houdt dezelfde UTC-offset als de begintijd aan.
 function endDate(startISO) {
   const m = startISO.match(/([+-]\d{2}:\d{2})$/);
@@ -42,47 +46,69 @@ function endDate(startISO) {
   return new Date(ms + offMin * 60000).toISOString().slice(0, 19) + offset;
 }
 
-// --- 1. JSON-LD voor workshops.html ---------------------------------------
-const jsonld = upcoming.map((ev) => ({
-  "@context": "https://schema.org",
-  "@type": "Event",
-  name: `Suncatcher workshop ${ev.city} · ${dutchDate(ev.start)}`,
-  startDate: ev.start,
-  endDate: endDate(ev.start),
-  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  eventStatus: "https://schema.org/EventScheduled",
-  location: {
-    "@type": "Place",
-    name: ev.venue || `Sfeervol atelier in ${ev.city}`,
-    address: {
-      "@type": "PostalAddress",
-      ...(ev.street ? { streetAddress: ev.street } : {}),
-      addressLocality: ev.city,
-      addressCountry: "NL"
-    }
-  },
-  organizer: { "@type": "Organization", name: "Glistening Studio", url: `${SITE}/` },
-  image: `${SITE}/suncatchers-tuin.jpg`,
-  url: `${SITE}/workshops.html#agenda`,
-  offers: {
-    "@type": "Offer",
-    price: String(ev.price != null ? ev.price : 55) + ".00",
-    priceCurrency: "EUR",
-    availability: ev.status && ev.status !== "available"
-      ? "https://schema.org/SoldOut"
-      : "https://schema.org/InStock",
-    url: `${SITE}/workshops.html#agenda`
-  }
+// --- 1. JSON-LD voor workshops.html (NL) én en/workshops.html (EN) ---------
+// Eén bron (events.json) → beide talen blijven automatisch gelijk.
+function buildJsonLd({ pagePath, formatDate, cityLabel, venueFallback }) {
+  return upcoming.map((ev) => {
+    const city = cityLabel(ev.city);
+    return {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: `Suncatcher workshop ${city} · ${formatDate(ev.start)}`,
+      startDate: ev.start,
+      endDate: endDate(ev.start),
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: {
+        "@type": "Place",
+        name: ev.venue || venueFallback(city),
+        address: {
+          "@type": "PostalAddress",
+          ...(ev.street ? { streetAddress: ev.street } : {}),
+          addressLocality: city,
+          addressCountry: "NL"
+        }
+      },
+      organizer: { "@type": "Organization", name: "Glistening Studio", url: `${SITE}/` },
+      image: `${SITE}/suncatchers-tuin.jpg`,
+      url: `${SITE}${pagePath}#agenda`,
+      offers: {
+        "@type": "Offer",
+        price: String(ev.price != null ? ev.price : 55) + ".00",
+        priceCurrency: "EUR",
+        availability: ev.status && ev.status !== "available"
+          ? "https://schema.org/SoldOut"
+          : "https://schema.org/InStock",
+        url: `${SITE}${pagePath}#agenda`
+      }
+    };
+  });
+}
+
+function writeJsonLd(relPath, jsonld) {
+  const ldBlock = JSON.stringify(jsonld, null, 2);
+  const filePath = join(root, relPath);
+  let html = readFileSync(filePath, "utf8");
+  html = html.replace(
+    /(<script type="application\/ld\+json">)[\s\S]*?(<\/script>)/,
+    `$1\n${ldBlock}\n$2`
+  );
+  writeFileSync(filePath, html);
+}
+
+writeJsonLd("workshops.html", buildJsonLd({
+  pagePath: "/workshops.html",
+  formatDate: dutchDate,
+  cityLabel: (c) => c,
+  venueFallback: (c) => `Sfeervol atelier in ${c}`
 }));
 
-const ldBlock = JSON.stringify(jsonld, null, 2);
-const workshopsPath = join(root, "workshops.html");
-let html = readFileSync(workshopsPath, "utf8");
-html = html.replace(
-  /(<script type="application\/ld\+json">)[\s\S]*?(<\/script>)/,
-  `$1\n${ldBlock}\n$2`
-);
-writeFileSync(workshopsPath, html);
+writeJsonLd("en/workshops.html", buildJsonLd({
+  pagePath: "/en/workshops.html",
+  formatDate: englishDate,
+  cityLabel: (c) => (c === "Den Haag" ? "The Hague" : c),
+  venueFallback: (c) => `Cozy studio in ${c}`
+}));
 
 // --- 2. sitemap.xml --------------------------------------------------------
 const pages = ["/", "/workshops.html", "/privegroepen.html", "/zakelijke-groepen.html", "/over-ons.html", "/contact.html"];
