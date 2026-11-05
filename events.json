@@ -19,5 +19,9 @@
   { "id": "2026-12-06-1300", "start": "2026-12-06T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
   { "id": "2026-12-10-1900", "start": "2026-12-10T19:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
   { "id": "2026-12-17-1900", "start": "2026-12-17T19:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
-  { "id": "2026-12-20-1300", "start": "2026-12-20T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" }
+  { "id": "2026-12-20-1300", "start": "2026-12-20T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
+  { "id": "2026-12-27-1300", "start": "2026-12-27T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
+  { "id": "2026-12-28-1900", "start": "2026-12-28T19:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
+  { "id": "2026-12-29-1300", "start": "2026-12-29T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" },
+  { "id": "2026-12-30-1300", "start": "2026-12-30T13:00:00+01:00", "city": "Den Haag", "venue": "Atelier de Kust", "street": "Goudenregenstraat 34E", "price": 55, "status": "available" }
 ]
