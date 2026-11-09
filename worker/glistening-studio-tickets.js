@@ -262,14 +262,13 @@ async function handleRequest(request, env) {
 // vervalst formulierveld tóch binnen de 48 uur boeken. Lukt ophalen niet, dan
 // geven we null terug en valt /book terug op de meegestuurde start (de site
 // bewaakt de grens ook al), zodat een tijdelijke storing geen verkoop blokkeert.
-async function getEventStart(eventId) {
+async function getEvent(eventId) {
   if (!eventId) return null;
   try {
     const res = await fetch(SITE + "/events.json", { cf: { cacheTtl: 60 } });
     if (!res.ok) return null;
     const events = await res.json();
-    const ev = (events || []).find(function (e) { return e && e.id === eventId; });
-    return ev && ev.start ? ev.start : null;
+    return (events || []).find(function (e) { return e && e.id === eventId; }) || null;
   } catch (e) {
     return null;
   }
@@ -335,14 +334,20 @@ async function handleBook(request, env, url) {
   // 48-uursgrens: online boeken sluit ruim voor aanvang. We bepalen de starttijd
   // bij voorkeur uit events.json (niet te vervalsen); lukt dat niet, dan vallen we
   // terug op de meegestuurde start. Kunnen we de tijd helemaal niet bepalen, dan
-  // laten we het door (de site bewaakt de grens ook al).
-  const startISO = (await getEventStart(eventId)) || start;
+  // laten we het door (de site bewaakt de grens ook al). Per workshop kan deze
+  // grens worden overrulet met "cutoffHours" in events.json (bijv. 0 = tot aan
+  // de starttijd boeken, voor last-minute aansluiten).
+  const ev = await getEvent(eventId);
+  const startISO = (ev && ev.start) || start;
+  const cutoffHours = (ev && ev.cutoffHours !== undefined && ev.cutoffHours !== null && !isNaN(ev.cutoffHours))
+    ? Number(ev.cutoffHours)
+    : BOOKING_CUTOFF_HOURS;
   if (startISO) {
     const startMs = new Date(startISO).getTime();
-    if (!isNaN(startMs) && startMs - Date.now() <= BOOKING_CUTOFF_HOURS * 60 * 60 * 1000) {
+    if (!isNaN(startMs) && startMs - Date.now() <= cutoffHours * 60 * 60 * 1000) {
       return htmlPage(
         "Online boeken is gesloten",
-        "Voor deze workshop kun je vanaf " + BOOKING_CUTOFF_HOURS + " uur voor aanvang niet meer online boeken. Mail gerust naar info@glisteningstudio.com, dan kijken we of er nog plek is. Er is niets afgeschreven."
+        "Voor deze workshop kun je vanaf " + cutoffHours + " uur voor aanvang niet meer online boeken. Mail gerust naar info@glisteningstudio.com, dan kijken we of er nog plek is. Er is niets afgeschreven."
       );
     }
   }

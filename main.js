@@ -32,9 +32,14 @@
   // Online boeken sluit een vast aantal uur vóór de start (standaard 48 uur).
   // Zo kan Kiki alles rustig klaarzetten en komen er geen last-minute boekingen
   // binnen. Zowel de site als de Worker houden hier rekening mee.
+  // Per workshop kun je dit overrulen door in events.json "cutoffHours" te zetten
+  // (bijv. 0 = boeken mag tot aan de starttijd, ideaal voor last-minute aansluiten).
   window.GLS_BOOKING_CUTOFF_HOURS = 48;
-  window.glsBookingOpen = function (startISO) {
-    var ms = window.GLS_BOOKING_CUTOFF_HOURS * 60 * 60 * 1000;
+  window.glsBookingOpen = function (startISO, cutoffHours) {
+    var hours = (cutoffHours === undefined || cutoffHours === null || isNaN(cutoffHours))
+      ? window.GLS_BOOKING_CUTOFF_HOURS
+      : Number(cutoffHours);
+    var ms = hours * 60 * 60 * 1000;
     return new Date(startISO).getTime() - Date.now() > ms;
   };
 

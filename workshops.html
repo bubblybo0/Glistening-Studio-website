@@ -687,7 +687,7 @@
           var remaining = Math.max(0, capacity - sold);
           var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
           // Online boeken sluit 48 uur voor aanvang.
-          var bookingClosed = !soldOut && !window.glsBookingOpen(ev.start);
+          var bookingClosed = !soldOut && !window.glsBookingOpen(ev.start, ev.cutoffHours);
           // Eerlijke schaarste: alleen tonen als het echt bijna vol is.
           var spotsLine = soldOut
             ? '<span class="agenda-spots is-full">Vol</span>'
