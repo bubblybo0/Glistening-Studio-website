@@ -213,7 +213,7 @@
           var remaining = Math.max(0, (avail.capacity || 15) - sold);
           if (remaining <= 0) { showSoldOut(); return; }
           // Te laat om nog online te boeken (binnen 48 uur voor aanvang)?
-          if (!window.glsBookingOpen(ev.start, ev.cutoffHours)) { showBookingClosed(); return; }
+          if (!window.glsBookingOpen(ev.start, window.glsEffectiveCutoff(ev, sold))) { showBookingClosed(); return; }
           [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
             if (!btn) return;
             btn.setAttribute("data-worker-desc", eventDesc);

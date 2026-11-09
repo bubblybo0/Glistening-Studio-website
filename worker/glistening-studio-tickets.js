@@ -21,7 +21,8 @@
 // ===========================================================================
 
 const CAPACITY = 15;                              // max. plekken per workshop
-const BOOKING_CUTOFF_HOURS = 48;                  // online boeken sluit zoveel uur vóór aanvang
+const BOOKING_CUTOFF_HOURS = 48;                  // online boeken sluit zoveel uur vóór aanvang (nog niemand geboekt)
+const LASTMINUTE_CUTOFF_HOURS = 2;                // zodra er al geboekt is: boeken mag tot zoveel uur vóór aanvang
 const REMINDER_TOTAL = 3;                          // seintje aan Kiki: hoe vaak in totaal
 const REMINDER_GAP_MS = 60 * 60 * 1000;            // tijd tussen de seintjes (1 uur)
 const PRICE_PER_TICKET = 55;                      // prijs per ticket in euro
@@ -318,10 +319,12 @@ async function handleBook(request, env, url) {
   const checkoutLocale = lang === "en" ? "en_US" : "nl_NL";
   const thanksPath = lang === "en" ? "/en/bedankt.html" : "/bedankt.html";
 
+  // Reeds betaalde plekken voor deze workshop. Gebruikt voor zowel de max.-check
+  // als de automatische last-minute-grens hieronder.
+  const sold = eventId ? ((await readCounts(env))[eventId] || 0) : 0;
+
   // Max 15 afdwingen (op basis van reeds betaalde plekken).
   if (eventId) {
-    const counts = await readCounts(env);
-    const sold = counts[eventId] || 0;
     if (sold >= CAPACITY) {
       return htmlPage("Deze workshop is net vol", "Wat jammer, alle plekken voor deze datum zijn vergeven. Bekijk de agenda voor de eerstvolgende workshop.", true);
     }
@@ -331,17 +334,26 @@ async function handleBook(request, env, url) {
     }
   }
 
-  // 48-uursgrens: online boeken sluit ruim voor aanvang. We bepalen de starttijd
+  // Boekingsgrens: online boeken sluit ruim voor aanvang. We bepalen de starttijd
   // bij voorkeur uit events.json (niet te vervalsen); lukt dat niet, dan vallen we
   // terug op de meegestuurde start. Kunnen we de tijd helemaal niet bepalen, dan
-  // laten we het door (de site bewaakt de grens ook al). Per workshop kan deze
-  // grens worden overrulet met "cutoffHours" in events.json (bijv. 0 = tot aan
-  // de starttijd boeken, voor last-minute aansluiten).
+  // laten we het door (de site bewaakt de grens ook al).
+  //
+  // Welke grens geldt, in volgorde:
+  //   1. staat er een "cutoffHours" in events.json, dan wint die altijd;
+  //   2. is er al minstens één plek verkocht, dan de korte last-minute-grens
+  //      (de workshop gaat tóch door, dus mensen mogen nog aansluiten);
+  //   3. anders de standaard 48 uur.
   const ev = await getEvent(eventId);
   const startISO = (ev && ev.start) || start;
-  const cutoffHours = (ev && ev.cutoffHours !== undefined && ev.cutoffHours !== null && !isNaN(ev.cutoffHours))
-    ? Number(ev.cutoffHours)
-    : BOOKING_CUTOFF_HOURS;
+  let cutoffHours;
+  if (ev && ev.cutoffHours !== undefined && ev.cutoffHours !== null && !isNaN(ev.cutoffHours)) {
+    cutoffHours = Number(ev.cutoffHours);
+  } else if (sold > 0) {
+    cutoffHours = LASTMINUTE_CUTOFF_HOURS;
+  } else {
+    cutoffHours = BOOKING_CUTOFF_HOURS;
+  }
   if (startISO) {
     const startMs = new Date(startISO).getTime();
     if (!isNaN(startMs) && startMs - Date.now() <= cutoffHours * 60 * 60 * 1000) {

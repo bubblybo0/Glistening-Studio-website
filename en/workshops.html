@@ -689,7 +689,7 @@
           var remaining = Math.max(0, capacity - sold);
           var soldOut = (ev.status && ev.status !== "available") || remaining <= 0;
           // Online booking closes 48 hours before the start.
-          var bookingClosed = !soldOut && !window.glsBookingOpen(ev.start, ev.cutoffHours);
+          var bookingClosed = !soldOut && !window.glsBookingOpen(ev.start, window.glsEffectiveCutoff(ev, sold));
           var spotsLine = soldOut
             ? '<span class="agenda-spots is-full">Sold out</span>'
             : (bookingClosed

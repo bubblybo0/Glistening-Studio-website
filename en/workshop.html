@@ -192,7 +192,7 @@
           var remaining = Math.max(0, (avail.capacity || 15) - sold);
           if (remaining <= 0) { showSoldOut(); return; }
           // Too late to book online (within 48 hours of the start)?
-          if (!window.glsBookingOpen(ev.start, ev.cutoffHours)) { showBookingClosed(); return; }
+          if (!window.glsBookingOpen(ev.start, window.glsEffectiveCutoff(ev, sold))) { showBookingClosed(); return; }
           [document.getElementById("bookBtnTop"), document.getElementById("bookBtnBottom")].forEach(function (btn) {
             if (!btn) return;
             btn.setAttribute("data-worker-desc", eventDesc);
