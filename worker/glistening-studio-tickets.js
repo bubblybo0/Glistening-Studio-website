@@ -45,9 +45,50 @@ const NOTIFY_EMAIL = "info@glisteningstudio.com"; // waar jij het seintje krijgt
 // meer — of je haalt ze weg om het overzicht te bewaren.
 const DISCOUNT_PERCENT = 10;   // korting per geldige code (%)
 const DISCOUNT_MONTHS = 2;     // hoe lang een code geldig blijft na de workshopdatum
+
+// Handmatige codes (uitzonderingen). Normaal hoef je hier niets te doen: zodra
+// iemand een workshop betaalt, maakt de Worker automatisch de code voor die
+// workshopdatum aan (zie issueDiscountForBooking in de webhook verderop). Zet hier
+// alleen een regel bij voor een bijzonder geval, bijv. een code die je met de hand
+// uitdeelt. "from" is de startdatum; de code vervalt DISCOUNT_MONTHS maanden later.
+// Invoeren mag met of zonder spaties, in hoofd- of kleine letters, en met de
+// volledige maandnaam of de afkorting ("12november", "12 nov" en "12NOV" zijn gelijk).
 const DISCOUNT_CODES = [
-  { code: "27AUG", from: "2026-08-27" },
+  { code: "12NOV", from: "2026-11-12" }, // uitzondering: met de hand uitgedeeld als "12november"
 ];
+
+// Nederlandse maanden: afkorting (index 0 = januari) en volledige naam -> afkorting.
+const MONTHS_NL = ["JAN","FEB","MRT","APR","MEI","JUN","JUL","AUG","SEP","OKT","NOV","DEC"];
+const MONTH_FULL_NL = {
+  januari: "jan", februari: "feb", maart: "mrt", april: "apr", mei: "mei", juni: "jun",
+  juli: "jul", augustus: "aug", september: "sep", oktober: "okt", november: "nov", december: "dec",
+};
+
+// Maakt een code vergelijkbaar: kleine letters, zonder spaties, en volledige
+// maandnaam vervangen door de afkorting. Zo zijn "12november", "12 Nov" en "12NOV"
+// allemaal hetzelfde.
+function canonCode(input) {
+  let s = String(input || "").toLowerCase().replace(/\s+/g, "");
+  for (const full in MONTH_FULL_NL) {
+    if (s.indexOf(full) !== -1) { s = s.replace(full, MONTH_FULL_NL[full]); break; }
+  }
+  return s;
+}
+
+// Haalt de datum "JJJJ-MM-DD" uit een workshop-id als "2026-11-12-1900".
+function isoFromEventId(eventId) {
+  const m = String(eventId || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : "";
+}
+
+// Zet een datum "2026-11-12" om in een code "12NOV" (dag zonder voorloop-nul).
+function dateToCode(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return "";
+  const mon = MONTHS_NL[parseInt(m[2], 10) - 1];
+  if (!mon) return "";
+  return `${parseInt(m[3], 10)}${mon}`;
+}
 
 // De /availability geeft alleen publieke tellingen terug (geen persoonsgegevens),
 // dus die mag elke pagina van de site opvragen — ook via www.
@@ -72,7 +113,7 @@ export default {
       return handleBookings(env, url);
     }
     if (url.pathname === "/discount") {
-      return handleDiscount(url);
+      return handleDiscount(url, env);
     }
     if (url.pathname === "/request" && request.method === "POST") {
       return handleRequest(request, env);
@@ -106,21 +147,58 @@ async function readCounts(env) {
 
 // --- Kortingscodes ----------------------------------------------------------
 // Zoekt een ingevoerde code op en controleert of die nog geldig is. Geeft
-// { code, percent } terug bij een geldige code, anders null.
-function findDiscount(input) {
-  const code = String(input || "").trim().toUpperCase();
-  if (!code) return null;
+// { code, percent } terug bij een geldige code, anders null. Kijkt eerst in de
+// handmatige lijst hierboven en daarna bij de automatisch aangemaakte codes (KV,
+// "issued:<code>"), die bij elke betaling voor een workshopdatum worden aangemaakt.
+async function findDiscount(env, input) {
+  const wanted = canonCode(input);
+  if (!wanted) return null;
+
+  let from = null;
+  let display = wanted.toUpperCase();
+
   const entry = DISCOUNT_CODES.find(function (c) {
-    return String(c.code).trim().toUpperCase() === code;
+    return canonCode(c.code) === wanted;
   });
-  if (!entry) return null;
-  const from = new Date(entry.from + "T00:00:00Z");
-  if (isNaN(from.getTime())) return null;
-  const until = new Date(from);
+  if (entry) {
+    from = entry.from;
+    display = entry.code;
+  } else if (env && env.TICKETS) {
+    try {
+      const raw = await env.TICKETS.get("issued:" + wanted);
+      if (raw) {
+        const rec = JSON.parse(raw);
+        if (rec && rec.from) from = rec.from;
+      }
+    } catch (e) {}
+  }
+  if (!from) return null;
+
+  const fromDate = new Date(from + "T00:00:00Z");
+  if (isNaN(fromDate.getTime())) return null;
+  const until = new Date(fromDate);
   until.setUTCMonth(until.getUTCMonth() + DISCOUNT_MONTHS);
   until.setUTCHours(23, 59, 59, 999); // geldig t/m het einde van de vervaldag
   if (Date.now() > until.getTime()) return null;
-  return { code: entry.code, percent: DISCOUNT_PERCENT };
+  return { code: display, percent: DISCOUNT_PERCENT };
+}
+
+// Maakt automatisch de kortingscode aan voor een betaalde boeking: de code is de
+// workshopdatum (bv. 12 nov 2026 -> "12NOV"), 10% korting, DISCOUNT_MONTHS maanden
+// geldig vanaf die datum. Opgeslagen in KV onder "issued:<code>", zodat findDiscount
+// 'm daarna herkent. Idempotent: nog eens opslaan is geen probleem (iedereen van
+// dezelfde workshop deelt dezelfde code). Geeft de code terug (of "" als het niet lukt).
+async function issueDiscountForBooking(env, eventId) {
+  const iso = isoFromEventId(eventId);
+  const code = dateToCode(iso);
+  if (!iso || !code || !env || !env.TICKETS) return "";
+  try {
+    await env.TICKETS.put("issued:" + canonCode(code), JSON.stringify({ from: iso }));
+  } catch (e) {
+    console.log("Kortingscode aanmaken-fout:", e && e.message);
+    return "";
+  }
+  return code;
 }
 
 // Berekent het te betalen bedrag (in euro, als "12.34"-string) voor een aantal
@@ -138,8 +216,8 @@ function computeAmount(qty, discount) {
 // Laat de site (het boek-venster) live checken of een code klopt, zodat de
 // klant het gekorte bedrag al ziet vóór de betaling. De echte korting wordt
 // altijd nog eens server-side bevestigd in /book, dus dit is puur voor de tonen.
-function handleDiscount(url) {
-  const d = findDiscount(url.searchParams.get("code"));
+async function handleDiscount(url, env) {
+  const d = await findDiscount(env, url.searchParams.get("code"));
   return json({ valid: !!d, percent: d ? d.percent : 0 }, 200, {
     ...CORS,
     "Cache-Control": "public, max-age=20",
@@ -313,7 +391,7 @@ async function handleBook(request, env, url) {
   }
 
   // Kortingscode server-side valideren (nooit op de client vertrouwen voor het bedrag).
-  const discount = findDiscount(discountInput);
+  const discount = await findDiscount(env, discountInput);
 
   // Taal bepaalt de Mollie-checkout-taal en waar de klant na betaling terugkomt.
   const checkoutLocale = lang === "en" ? "en_US" : "nl_NL";
@@ -463,6 +541,14 @@ async function handleWebhook(request, env, url) {
     await env.TICKETS.put(`booking:${paymentId}`, JSON.stringify(record));
   } catch (e) {
     console.log("Boeking opslaan-fout:", e && e.message);
+  }
+
+  // Automatisch de kortingscode voor deze workshopdatum aanmaken (10%, 2 maanden
+  // geldig). Zo kan de deelnemer 'm later invullen bij een volgende boeking.
+  try {
+    await issueDiscountForBooking(env, eventId);
+  } catch (e) {
+    console.log("Kortingscode aanmaken-fout:", e && e.message);
   }
 
   // Bevestiging aan de klant (mislukt die, dan laten we de rest en Mollie met rust).
